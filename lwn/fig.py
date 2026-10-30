@@ -81,6 +81,6 @@ def finish(fig, name, data):
         ax.grid(alpha=0.25)
         ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
-    fig.savefig(ROOT / "figures" / f"{name}.png", dpi=160)
+    fig.savefig(ROOT / "figures" / f"{name}.png", dpi=160, bbox_inches="tight")
     (ROOT / "results" / f"{name}.json").write_text(json.dumps(data, indent=1, default=float) + "\n")
     plt.close(fig)
