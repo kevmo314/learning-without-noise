@@ -10,12 +10,17 @@ from .train import FT, finetune
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "results" / "runs"
+LATER = {"subset": None, "optimizer": "adamw"}
 
 
 def run(ctx, **kw):
     """finetune(FT(**kw)), cached on disk by its config so experiments can share and resume runs."""
     cfg = FT(**kw)
-    key = hashlib.sha1(json.dumps(cfg.__dict__, sort_keys=True, default=str).encode()).hexdigest()[:16]
+    # Fields added after the first runs are left out of the key at their defaults, so older cached runs stay valid.
+    fields = {k: v for k, v in cfg.__dict__.items() if not (k in LATER and v == LATER[k])}
+    if ctx.task != "badending":
+        fields["task"] = ctx.task
+    key = hashlib.sha1(json.dumps(fields, sort_keys=True, default=str).encode()).hexdigest()[:16]
     path = CACHE / f"{key}.pt"
     if path.exists():
         return torch.load(path, map_location="cuda", weights_only=False)

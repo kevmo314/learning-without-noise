@@ -90,8 +90,9 @@ def lr_at(cfg, step):
 class Context:
     """Shared, read-only objects for many runs: data, base weights and the base's held-out log-probs."""
 
-    def __init__(self):
-        self.data = Data()
+    def __init__(self, task="badending", **data_kw):
+        self.task = task
+        self.data = Data(task=task, **data_kw)
         base = make_model(self.data.vocab).cuda()
         base.load_state_dict(torch.load(BASE, map_location="cuda"))
         self.base_state = copy.deepcopy(base.state_dict())

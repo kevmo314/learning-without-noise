@@ -1,0 +1,245 @@
+{
+ "rows": [
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.0",
+   "step": 250,
+   "rho%": 1.499,
+   "jitter_share": 0.0223,
+   "kl": 0.04812,
+   "progress": 0.3826,
+   "break_even%": 0.374
+  },
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.0",
+   "step": 500,
+   "rho%": 1.946,
+   "jitter_share": 0.0131,
+   "kl": 0.05436,
+   "progress": 0.4258,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.0",
+   "step": 1000,
+   "rho%": 2.549,
+   "jitter_share": 0.0085,
+   "kl": 0.04965,
+   "progress": 0.4577,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.3",
+   "step": 250,
+   "rho%": 1.193,
+   "jitter_share": 0.0195,
+   "kl": 0.10864,
+   "progress": 0.323,
+   "break_even%": 0.257
+  },
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.3",
+   "step": 500,
+   "rho%": 1.469,
+   "jitter_share": 0.0098,
+   "kl": 0.12594,
+   "progress": 0.3919,
+   "break_even%": 0.222
+  },
+  {
+   "run": "lr=0.0003,batch=32,label_noise=0.3",
+   "step": 1000,
+   "rho%": 1.963,
+   "jitter_share": 0.0065,
+   "kl": 0.17987,
+   "progress": 0.4282,
+   "break_even%": 0.288
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.0",
+   "step": 250,
+   "rho%": 3.634,
+   "jitter_share": 0.0534,
+   "kl": 0.05738,
+   "progress": 0.5293,
+   "break_even%": 0.552
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.0",
+   "step": 500,
+   "rho%": 4.91,
+   "jitter_share": 0.0317,
+   "kl": 0.08526,
+   "progress": 0.5465,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.0",
+   "step": 1000,
+   "rho%": 7.907,
+   "jitter_share": 0.0304,
+   "kl": 0.14222,
+   "progress": 0.6722,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.3",
+   "step": 250,
+   "rho%": 2.894,
+   "jitter_share": 0.0493,
+   "kl": 0.5684,
+   "progress": 0.4835,
+   "break_even%": 0.418
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.3",
+   "step": 500,
+   "rho%": 4.056,
+   "jitter_share": 0.0244,
+   "kl": 0.53865,
+   "progress": 0.5449,
+   "break_even%": 0.538
+  },
+  {
+   "run": "lr=0.001,batch=32,label_noise=0.3",
+   "step": 1000,
+   "rho%": 6.15,
+   "jitter_share": 0.017,
+   "kl": 0.7253,
+   "progress": 0.6026,
+   "break_even%": 0.869
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.0",
+   "step": 250,
+   "rho%": 12.77,
+   "jitter_share": 0.1405,
+   "kl": 1.69606,
+   "progress": 0.7301,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.0",
+   "step": 500,
+   "rho%": 18.394,
+   "jitter_share": 0.0675,
+   "kl": 1.50689,
+   "progress": 0.7359,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.0",
+   "step": 1000,
+   "rho%": 31.834,
+   "jitter_share": 0.0688,
+   "kl": 5.28723,
+   "progress": 0.8606,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.3",
+   "step": 250,
+   "rho%": 10.359,
+   "jitter_share": 0.116,
+   "kl": 6.59185,
+   "progress": 0.7125,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.3",
+   "step": 500,
+   "rho%": 16.628,
+   "jitter_share": 0.052,
+   "kl": 9.8492,
+   "progress": 0.7301,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.003,batch=32,label_noise=0.3",
+   "step": 1000,
+   "rho%": 29.686,
+   "jitter_share": 0.0296,
+   "kl": 10.89114,
+   "progress": 0.7991,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.001,batch=128,steps=250",
+   "step": 125,
+   "rho%": 2.685,
+   "jitter_share": 0.0074,
+   "kl": 0.0774,
+   "progress": 0.4293,
+   "break_even%": 0.481
+  },
+  {
+   "run": "lr=0.001,batch=128,steps=250",
+   "step": 250,
+   "rho%": 3.355,
+   "jitter_share": 0.0058,
+   "kl": 0.05626,
+   "progress": 0.444,
+   "break_even%": 0.424
+  },
+  {
+   "run": "lr=0.001,schedule=isqrt",
+   "step": 250,
+   "rho%": 2.611,
+   "jitter_share": 0.0124,
+   "kl": 0.07643,
+   "progress": 0.3012,
+   "break_even%": 0.35
+  },
+  {
+   "run": "lr=0.001,schedule=isqrt",
+   "step": 500,
+   "rho%": 2.905,
+   "jitter_share": 0.0055,
+   "kl": 0.07134,
+   "progress": 0.272,
+   "break_even%": 0.392
+  },
+  {
+   "run": "lr=0.001,schedule=isqrt",
+   "step": 1000,
+   "rho%": 3.2,
+   "jitter_share": 0.0024,
+   "kl": 0.05731,
+   "progress": 0.2715,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.001,schedule=cosine",
+   "step": 250,
+   "rho%": 3.477,
+   "jitter_share": 0.0415,
+   "kl": 0.05774,
+   "progress": 0.4946,
+   "break_even%": 0.45
+  },
+  {
+   "run": "lr=0.001,schedule=cosine",
+   "step": 500,
+   "rho%": 4.26,
+   "jitter_share": 0.0102,
+   "kl": 0.0658,
+   "progress": 0.4297,
+   "break_even%": null
+  },
+  {
+   "run": "lr=0.001,schedule=cosine",
+   "step": 1000,
+   "rho%": 4.475,
+   "jitter_share": 0.0,
+   "kl": 0.06106,
+   "progress": 0.2202,
+   "break_even%": null
+  }
+ ],
+ "loro_error": {
+  "constant": 0.4178327380767034,
+  "log step": 0.5364094677803475,
+  "log jitter share": 0.40981577086200943,
+  "log kl": 0.8266395733091552,
+  "log jitter share + log step": 0.6266482444549014
+ }
+}

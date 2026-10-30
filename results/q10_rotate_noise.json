@@ -1,0 +1,312 @@
+{
+ "base": {
+  "task": 0.414,
+  "bio": 0.5357,
+  "bio_nll": 1.37,
+  "lm": 1.3549,
+  "kl": 0.0,
+  "acc_0_30": 1.0,
+  "acc_30_300": 0.9658,
+  "acc_300_3000": 0.4874,
+  "acc_3000_10000": 0.156
+ },
+ "rows": [
+  {
+   "noise": "jitter",
+   "part": "as measured",
+   "share_in": 0.668,
+   "rho%": 1.0,
+   "bio": -0.002,
+   "bio_nll": 0.0014,
+   "lm": 0.0025,
+   "kl": 0.0034,
+   "task": -0.08
+  },
+  {
+   "noise": "jitter",
+   "part": "as measured",
+   "share_in": 0.668,
+   "rho%": 2.0,
+   "bio": -0.0077,
+   "bio_nll": 0.0079,
+   "lm": 0.0109,
+   "kl": 0.0129,
+   "task": -0.172
+  },
+  {
+   "noise": "jitter",
+   "part": "as measured",
+   "share_in": 0.668,
+   "rho%": 4.0,
+   "bio": -0.0164,
+   "bio_nll": 0.0378,
+   "lm": 0.0482,
+   "kl": 0.0539,
+   "task": -0.292
+  },
+  {
+   "noise": "jitter",
+   "part": "in pretraining subspace",
+   "share_in": 0.668,
+   "rho%": 1.0,
+   "bio": -0.006,
+   "bio_nll": 0.0029,
+   "lm": 0.0039,
+   "kl": 0.0045,
+   "task": -0.09
+  },
+  {
+   "noise": "jitter",
+   "part": "in pretraining subspace",
+   "share_in": 0.668,
+   "rho%": 2.0,
+   "bio": -0.0074,
+   "bio_nll": 0.0114,
+   "lm": 0.0155,
+   "kl": 0.0172,
+   "task": -0.182
+  },
+  {
+   "noise": "jitter",
+   "part": "in pretraining subspace",
+   "share_in": 0.668,
+   "rho%": 4.0,
+   "bio": -0.012,
+   "bio_nll": 0.0483,
+   "lm": 0.068,
+   "kl": 0.075,
+   "task": -0.3
+  },
+  {
+   "noise": "jitter",
+   "part": "outside it",
+   "share_in": 0.668,
+   "rho%": 1.0,
+   "bio": -0.0034,
+   "bio_nll": -0.0007,
+   "lm": -0.0002,
+   "kl": 0.0007,
+   "task": -0.019
+  },
+  {
+   "noise": "jitter",
+   "part": "outside it",
+   "share_in": 0.668,
+   "rho%": 2.0,
+   "bio": -0.002,
+   "bio_nll": 0.0003,
+   "lm": 0.0002,
+   "kl": 0.0016,
+   "task": -0.04
+  },
+  {
+   "noise": "jitter",
+   "part": "outside it",
+   "share_in": 0.668,
+   "rho%": 4.0,
+   "bio": -0.0097,
+   "bio_nll": 0.0064,
+   "lm": 0.0037,
+   "kl": 0.0052,
+   "task": -0.063
+  },
+  {
+   "noise": "drift",
+   "part": "as measured",
+   "share_in": 0.609,
+   "rho%": 1.0,
+   "bio": 0.0,
+   "bio_nll": 0.001,
+   "lm": 0.0007,
+   "kl": 0.0014,
+   "task": -0.012
+  },
+  {
+   "noise": "drift",
+   "part": "as measured",
+   "share_in": 0.609,
+   "rho%": 2.0,
+   "bio": -0.003,
+   "bio_nll": 0.0036,
+   "lm": 0.0037,
+   "kl": 0.0043,
+   "task": -0.02
+  },
+  {
+   "noise": "drift",
+   "part": "as measured",
+   "share_in": 0.609,
+   "rho%": 4.0,
+   "bio": -0.01,
+   "bio_nll": 0.0211,
+   "lm": 0.0151,
+   "kl": 0.0163,
+   "task": -0.059
+  },
+  {
+   "noise": "drift",
+   "part": "in pretraining subspace",
+   "share_in": 0.609,
+   "rho%": 1.0,
+   "bio": 0.0,
+   "bio_nll": -0.0006,
+   "lm": 0.0012,
+   "kl": 0.0018,
+   "task": -0.003
+  },
+  {
+   "noise": "drift",
+   "part": "in pretraining subspace",
+   "share_in": 0.609,
+   "rho%": 2.0,
+   "bio": -0.003,
+   "bio_nll": 0.0022,
+   "lm": 0.0055,
+   "kl": 0.0059,
+   "task": 0.009
+  },
+  {
+   "noise": "drift",
+   "part": "in pretraining subspace",
+   "share_in": 0.609,
+   "rho%": 4.0,
+   "bio": -0.0067,
+   "bio_nll": 0.0198,
+   "lm": 0.0217,
+   "kl": 0.0231,
+   "task": -0.015
+  },
+  {
+   "noise": "drift",
+   "part": "outside it",
+   "share_in": 0.609,
+   "rho%": 1.0,
+   "bio": -0.001,
+   "bio_nll": 0.0019,
+   "lm": -0.0002,
+   "kl": 0.0006,
+   "task": -0.017
+  },
+  {
+   "noise": "drift",
+   "part": "outside it",
+   "share_in": 0.609,
+   "rho%": 2.0,
+   "bio": -0.0004,
+   "bio_nll": 0.005,
+   "lm": 0.0003,
+   "kl": 0.0011,
+   "task": -0.038
+  },
+  {
+   "noise": "drift",
+   "part": "outside it",
+   "share_in": 0.609,
+   "rho%": 4.0,
+   "bio": -0.007,
+   "bio_nll": 0.0195,
+   "lm": 0.0021,
+   "kl": 0.0033,
+   "task": -0.071
+  },
+  {
+   "noise": "random",
+   "part": "as measured",
+   "share_in": 0.483,
+   "rho%": 1.0,
+   "bio": 0.0016,
+   "bio_nll": 0.001,
+   "lm": 0.0,
+   "kl": 0.0008,
+   "task": -0.02
+  },
+  {
+   "noise": "random",
+   "part": "as measured",
+   "share_in": 0.483,
+   "rho%": 2.0,
+   "bio": -0.0007,
+   "bio_nll": 0.0048,
+   "lm": 0.0013,
+   "kl": 0.0019,
+   "task": -0.041
+  },
+  {
+   "noise": "random",
+   "part": "as measured",
+   "share_in": 0.483,
+   "rho%": 4.0,
+   "bio": -0.005,
+   "bio_nll": 0.0178,
+   "lm": 0.0058,
+   "kl": 0.0067,
+   "task": -0.079
+  },
+  {
+   "noise": "random",
+   "part": "in pretraining subspace",
+   "share_in": 0.483,
+   "rho%": 1.0,
+   "bio": 0.0013,
+   "bio_nll": 0.005,
+   "lm": 0.0006,
+   "kl": 0.0011,
+   "task": -0.022
+  },
+  {
+   "noise": "random",
+   "part": "in pretraining subspace",
+   "share_in": 0.483,
+   "rho%": 2.0,
+   "bio": -0.004,
+   "bio_nll": 0.0117,
+   "lm": 0.0025,
+   "kl": 0.0032,
+   "task": -0.039
+  },
+  {
+   "noise": "random",
+   "part": "in pretraining subspace",
+   "share_in": 0.483,
+   "rho%": 4.0,
+   "bio": -0.011,
+   "bio_nll": 0.0383,
+   "lm": 0.0108,
+   "kl": 0.0118,
+   "task": -0.078
+  },
+  {
+   "noise": "random",
+   "part": "outside it",
+   "share_in": 0.483,
+   "rho%": 1.0,
+   "bio": 0.0006,
+   "bio_nll": -0.0022,
+   "lm": -0.0004,
+   "kl": 0.0004,
+   "task": -0.006
+  },
+  {
+   "noise": "random",
+   "part": "outside it",
+   "share_in": 0.483,
+   "rho%": 2.0,
+   "bio": -0.0007,
+   "bio_nll": -0.0035,
+   "lm": 0.0001,
+   "kl": 0.0008,
+   "task": -0.017
+  },
+  {
+   "noise": "random",
+   "part": "outside it",
+   "share_in": 0.483,
+   "rho%": 4.0,
+   "bio": 0.0006,
+   "bio_nll": -0.0017,
+   "lm": 0.001,
+   "kl": 0.0019,
+   "task": -0.035
+  }
+ ]
+}

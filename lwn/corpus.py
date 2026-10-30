@@ -160,5 +160,26 @@ def build(pretrain_files=range(0, 20), task_files=(48, 49), bio_frac=0.2, seed=0
     print(meta)
 
 
+FEATURES = ["BadEnding", "Twist", "MoralValue", "Conflict"]
+
+
+def build_features(task_files=(46, 47), per_class=6000, seed=0):
+    """A harder task: which one of four story features does this story have? Stories tagged with exactly one of them."""
+    rng = random.Random(seed)
+    by = {f: [] for f in FEATURES}
+    for s, f in load_stories(task_files):
+        hit = [x for x in FEATURES if x in f]
+        if len(hit) == 1:
+            by[hit[0]].append(s)
+    rows = [{"story": s, "label": f} for f in FEATURES for s in by[f][:per_class]]
+    rng.shuffle(rows)
+    holdout, train = rows[:2000], rows[2000:]
+    (OUT / "features_train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in train))
+    (OUT / "features_holdout.jsonl").write_text("".join(json.dumps(r) + "\n" for r in holdout))
+    print({f: len(v) for f, v in by.items()}, len(train), len(holdout))
+
+
 if __name__ == "__main__":
-    build()
+    import sys
+
+    build_features() if sys.argv[1:] == ["features"] else build()

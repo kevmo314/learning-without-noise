@@ -1,0 +1,46 @@
+{
+ "rows": [
+  {
+   "arm": "adamw 1e-3",
+   "rho%": 7.907,
+   "task": 0.9655,
+   "bio_raw": 0.4986,
+   "bio_avg_ema": 0.5203,
+   "signal": 0.00186,
+   "drift": 0.00385,
+   "jitter": 0.000155,
+   "cross_seed_cos": 0.326,
+   "curv_jitter": 61.3,
+   "curv_drift": 19.5,
+   "curv_signal": 58.6
+  },
+  {
+   "arm": "sgd 0.3",
+   "rho%": 48.594,
+   "task": 0.8932,
+   "bio_raw": 0.1236,
+   "bio_avg_ema": 0.118,
+   "signal": 0.0617,
+   "drift": 0.213,
+   "jitter": 0.00977,
+   "cross_seed_cos": 0.219,
+   "curv_jitter": 198.9,
+   "curv_drift": 87.6,
+   "curv_signal": 271.5
+  },
+  {
+   "arm": "sgd 1.0",
+   "rho%": 1006.055,
+   "task": 0.5088,
+   "bio_raw": 0.1261,
+   "bio_avg_ema": 0.1187,
+   "signal": 0.966,
+   "drift": 52.7,
+   "jitter": 0.15,
+   "cross_seed_cos": 0.0243,
+   "curv_jitter": 349.1,
+   "curv_drift": 1157.1,
+   "curv_signal": 1076.0
+  }
+ ]
+}

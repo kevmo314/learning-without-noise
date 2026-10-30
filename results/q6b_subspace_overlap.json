@@ -1,0 +1,64 @@
+{
+ "rows": [
+  {
+   "method": "lora",
+   "share_in_0.9": 0.642,
+   "share_in_0.99": 0.9184,
+   "curvature": 43.8
+  },
+  {
+   "method": "pissa",
+   "share_in_0.9": 0.772,
+   "share_in_0.99": 0.9542,
+   "curvature": 167.7
+  },
+  {
+   "method": "pissa lr/3",
+   "share_in_0.9": 0.7878,
+   "share_in_0.99": 0.9568,
+   "curvature": 299.5
+  },
+  {
+   "method": "pissa lr/10",
+   "share_in_0.9": 0.8003,
+   "share_in_0.99": 0.9583,
+   "curvature": 620.5
+  },
+  {
+   "method": "milora",
+   "share_in_0.9": 0.5143,
+   "share_in_0.99": 0.8108,
+   "curvature": 43.5
+  },
+  {
+   "method": "olora",
+   "share_in_0.9": 0.7961,
+   "share_in_0.99": 0.9558,
+   "curvature": 175.8
+  },
+  {
+   "method": "olora lr/10",
+   "share_in_0.9": 0.8645,
+   "share_in_0.99": 0.9696,
+   "curvature": 422.7
+  },
+  {
+   "method": "gpm",
+   "share_in_0.9": 0.0,
+   "share_in_0.99": 0.7789,
+   "curvature": 5.9
+  },
+  {
+   "method": "gpm99",
+   "share_in_0.9": 0.0,
+   "share_in_0.99": 0.0,
+   "curvature": 2.1
+  },
+  {
+   "method": "full",
+   "share_in_0.9": 0.7047,
+   "share_in_0.99": 0.9403,
+   "curvature": 514.3
+  }
+ ]
+}
