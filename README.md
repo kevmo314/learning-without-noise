@@ -184,6 +184,18 @@ The combination cuts forgetting 30–100× and still beats the baseline on the t
 text at every step) also works very well on its own, at weight 1.0: knowledge loss +0.016 and the best task accuracy
 (92.0%). The catch is that it needs pretraining-like data at fine-tuning time.
 
+### 11. Noisier labels mean more forgetting at the same distance; a fixed cap holds, adaptive decay only partly
+
+![data quality](figures/f7_data_quality.png)
+
+As the share of randomised fine-tuning labels goes from 0% to 60%, plain training's knowledge loss rises about 6×
+and its KL about 10×. This happens while the weights move *less* far, so the safe distance depends on data quality.
+
+A fixed 2% cap holds KL at about 0.05 at every noise level, but its task cost grows with the noise (91% → 86.5%).
+Adaptive weight decay (Ghiasi et al. 2023, here pulling toward the base with strength ∝ ‖grad‖/‖ΔW‖) helps only at
+the strongest setting tried, and only halves the damage at high noise. Under always-on gradient clipping, the
+gradient norm it keys on barely tracks label noise.
+
 ### Still running
 
-- `f7_data_quality`: label noise against adaptive weight decay.
+- The 27M-parameter scale check of figures 1, 2, 3 and 11.
