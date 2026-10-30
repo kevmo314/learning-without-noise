@@ -53,4 +53,100 @@ its tables and writes `results/<name>.json`.
 
 ## Findings
 
-Results are added here as each question finishes.
+Figures use 6 seeds per point (mean ± 95% CI), the harder four-way story-feature task, and a large evaluation set
+(12k knowledge items, 512 held-out text windows). Each figure is produced by `figures_src/<name>.py`. The scripts in
+`experiments/` are the earlier exploratory versions, on the yes/no task.
+
+### 1. The task is learned early; forgetting keeps growing, and faster at higher learning rates
+
+![training curves](figures/f1_curves.png)
+
+All three learning rates reach the same task accuracy (about 91%) by step 2000. At LR 1e-3, though, knowledge loss
+climbs to +0.56 nats and language loss to +0.75, while at 1e-4 both stay flat. The extra damage at the high LR buys
+no extra learning. The EMA of the same run (dashed) forgets a little less.
+
+### 2. The noise that training produces is much more harmful than random noise of the same size
+
+![noise injection](figures/f2_injection.png)
+
+No learning here at all: we add noise to the base weights and measure the damage. Four kinds are compared:
+- random Gaussian noise;
+- a random low-rank product;
+- the **slow drift** of real fine-tunes: the part of the update that differs between seeds and survives an EMA;
+- the **fast jitter** of real fine-tunes: raw weights minus their EMA.
+
+At every size, jitter does about 10× the damage of random noise to language loss and KL, and drift about 2×. Random
+low-rank noise is no worse than random full-rank noise. The optimizer's own noise is special: it points where the
+model is sensitive.
+
+### 3. Everything that reduces noise reduces forgetting
+
+![mitigations](figures/f3_mitigations.png)
+
+All arms see the same examples. The fixes that make each step less noisy cut knowledge loss 2–4×:
+- a lower LR;
+- a 4× batch;
+- cosine decay.
+
+Averaging the weights of independent runs halves it, and also *raises* task accuracy (89.7% → 92.5% with six seeds).
+The noise was hurting the task too. A 2% cap on the distance moved retains the most, but costs task accuracy at this
+LR. GPM leaves language untouched (described below). Adaptive weight decay does nothing at this strength; figure 7
+sweeps it.
+
+### 4. A single loss spike causes silent, lasting forgetting
+
+![spikes](figures/f4_spikes.png)
+
+One step at 100× the learning rate, in an otherwise identical run with the same data and the same init:
+- training loss recovers within about 100 steps;
+- task accuracy climbs back;
+- knowledge and language damage stay put for the rest of the run;
+- a 30× spike leaves a smaller gap that also never closes.
+
+A recovered training loss says nothing about what was forgotten. In the 2B LoRA runs that motivated this repo, the
+same experiment cost 2.7 MMLU points that remained 200 steps later.
+
+### 5. Sampling noise is not required: full-batch training forgets about as much
+
+![full batch](figures/f6_fullbatch.png)
+
+On 512 examples, full-batch AdamW, which has no minibatch noise at all, forgets about as much as minibatch training
+at the same task accuracy. So the harmful "noise" is not minibatch sampling as such. Our current reading is that it is
+the optimizer's oscillation along sensitive directions at a large step size. Full-batch Adam at a high LR bounces too
+(Cohen et al. 2021, edge of stability). That fits figures 1 and 3: the step size matters. A larger batch at a
+√-scaled LR gave the damage back in the exploratory runs. Figure 6b, in progress, tests this directly.
+
+### 6. Higher LoRA rank adds noise, not learning
+
+![rank](figures/f9_rank.png)
+
+From rank 4 to rank 64:
+- the drift and jitter energies grow 12× and 22×;
+- seeds agree less;
+- task accuracy stays flat;
+- knowledge loss grows 11×.
+
+### 7. Distance moved doesn't compare across optimizers; sensitivity-weighted distance does
+
+![SGD vs AdamW](figures/f8_sgd.png)
+
+SGD's updates are 10–100× smaller than AdamW's, yet they forget as much, because SGD moves along the sharpest
+directions. Weighting each part of the update by its curvature on held-out text puts all five runs close to their
+measured KL, where plain distance is off by orders of magnitude. With both optimizers, jitter sits in directions
+5–20× sharper than drift.
+
+### 8. Keeping the update out of the directions pretraining uses protects what the model knew
+
+![GPM](figures/f10_gpm.png)
+
+GPM-style projection keeps the adapter's inputs out of the subspace that pretraining activations occupy. With the
+same task accuracy as LoRA, it cuts language-loss damage 10–25× and knowledge damage 2–3.6×. Estimating that
+subspace from pretraining-mixture text (biographies included) rather than stories alone protects knowledge best at
+the 90% setting. The 99% mixture setting is noisier and worse, which is not yet explained.
+
+### Still running
+
+- `f5_subspace`: damage per unit distance against the share of the update on pretraining-active directions, for
+  LoRA, MiLoRA, PiSSA, OLoRA, GPM and full fine-tuning.
+- `f6b_stepsize`: full-batch vs minibatch at two LRs, with jitter measured.
+- `f7_data_quality`: label noise against adaptive weight decay.
