@@ -193,8 +193,7 @@ and its KL about 10×. This happens while the weights move *less* far, so the sa
 
 A fixed 2% cap holds KL at about 0.05 at every noise level, but its task cost grows with the noise (91% → 86.5%).
 Adaptive weight decay (Ghiasi et al. 2023, here pulling toward the base with strength ∝ ‖grad‖/‖ΔW‖) helps only at
-the strongest setting tried, and only halves the damage at high noise. Under always-on gradient clipping, the
-gradient norm it keys on barely tracks label noise.
+the strongest setting tried, and only halves the damage at high noise.
 
 ### Still running
 
