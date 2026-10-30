@@ -220,6 +220,10 @@ A 27M-parameter base (8 layers, width 512; `LWN_MODEL=large`, files suffixed `-l
   - Averaging six seeds nearly halves it, and task accuracy rises from 89.1% to 91.9%.
   - The 2% cap retains best but costs the most task accuracy.
   - GPM leaves language untouched; adaptive weight decay does nothing.
+- [Spikes](figures/f4_spikes-large.png): the same silent forgetting, and the larger model is more fragile.
+  - Training loss recovers from 10× and 30× spikes, yet knowledge loss ends 0.07 and 0.20 above the
+    identical run without a spike.
+  - A 100× spike leaves knowledge loss about 7× the control's and language loss at +8 nats.
 
 ### Still running
 
