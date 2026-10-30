@@ -41,6 +41,8 @@ def plot(data):
         ax.set_xticks(ranks, [str(r) for r in ranks])
         ax.minorticks_off()
         ax.set_xlabel("LoRA rank")
+    axes[1].set_yscale("log")
+    axes[2].set_ylim(0.8, 0.95)
     axes[0].legend()
     finish(fig, "f9_rank", data)
 
