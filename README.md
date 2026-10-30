@@ -224,6 +224,8 @@ A 27M-parameter base (8 layers, width 512; `LWN_MODEL=large`, files suffixed `-l
   - Training loss recovers from 10× and 30× spikes, yet knowledge loss ends 0.07 and 0.20 above the
     identical run without a spike.
   - A 100× spike leaves knowledge loss about 7× the control's and language loss at +8 nats.
+- [Combined fixes](figures/f11_combined-large.png): lower LR + EMA + GPM cuts knowledge loss from 0.42 to 0.019 and
+  language loss from 0.41 to 0.003. Task accuracy rises from 89.1% to 91.3%.
 
 ### Still running
 
