@@ -115,8 +115,8 @@ def pad(seqs, value=0):
 def last_logits(model, batch):
     (ids, att) = batch
     pos = (att.cumsum(1) - 1).clamp_min(0)
-    out = model(input_ids=ids.cuda(), attention_mask=att.cuda(), position_ids=pos.cuda())
-    return out.logits[:, -1].float()
+    h = model.transformer(input_ids=ids.cuda(), attention_mask=att.cuda(), position_ids=pos.cuda()).last_hidden_state
+    return model.lm_head(h[:, -1]).float()  # only the last position's logits: the answer
 
 
 def task_loss(model, batch, labels):
@@ -163,13 +163,13 @@ def evaluate(model, data, base_logp=None, task_n=1000):
 
 
 @torch.no_grad()
-def bio_scores(model, data, chunk=2048):
+def bio_scores(model, data, chunk=512):
     """Likelihood multiple choice over 8 candidates per (person, attribute)."""
     return bio_summary(bio_matrix(model, data, chunk), data)
 
 
 @torch.no_grad()
-def bio_matrix(model, data, chunk=2048):
+def bio_matrix(model, data, chunk=512):
     """Summed log-likelihood of each of the 8 candidates (true one first), one row per (person, attribute)."""
     seqs, owners, spans = [], [], []
     for k, it in enumerate(data.bio):

@@ -193,14 +193,23 @@ def finetune(ctx, cfg):
         if cfg.label_noise:
             flip = torch.from_numpy(r.random(len(labels)) < cfg.label_noise)
             labels = torch.where(flip, data.yes + data.no - labels, labels)
-        with torch.autocast("cuda", dtype=torch.bfloat16):
-            loss = task_loss(model, batch, labels)
-            if cfg.replay:
-                loss = loss + cfg.replay * lm_loss(model, data.lm_batch(8, r))
-        if fisher is not None:
-            loss = loss + cfg.ewc * sum((fisher[n] * d.square()).sum() for n, d in ad.deltas().items())
         opt.zero_grad(set_to_none=True)
-        loss.backward()
+        (ids, att), n, total = batch, len(labels), 0.0
+        for i in range(0, n, 128):  # gradient accumulation keeps full-batch runs within memory
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                part = task_loss(model, (ids[i : i + 128], att[i : i + 128]), labels[i : i + 128]) * min(128, n - i) / n
+            part.backward()
+            total += float(part.detach())
+        loss = torch.tensor(total)
+        extra = 0.0
+        if cfg.replay:
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                extra = cfg.replay * lm_loss(model, data.lm_batch(8, r))
+        if fisher is not None:
+            extra = extra + cfg.ewc * sum((fisher[n] * d.square()).sum() for n, d in ad.deltas().items())
+        if torch.is_tensor(extra):
+            extra.backward()
+            loss = loss + float(extra.detach())
         gn = float(torch.nn.utils.clip_grad_norm_(ad.params(), cfg.clip if cfg.clip else float("inf")))
         opt.step()
         ad.project()
