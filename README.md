@@ -205,6 +205,9 @@ Figures 1 and 3 were re-run on the easier yes/no task (`LWN_TASK=badending`, fil
   - averaging seeds helps more the more seeds are averaged (0.113 → 0.049 with six);
   - adaptive weight decay does nothing;
   - GPM protects language (+0.007) but not knowledge.
+- [Combined fixes](figures/f11_combined-badending.png): lower LR + EMA + GPM cuts knowledge loss from 0.114 to
+  0.006 and language loss from 0.124 to 0.003, and task accuracy rises slightly (96.2% → 96.9%). Replay at weight 1.0
+  leaves knowledge slightly *better* than the base (−0.012), since it is in effect extra pretraining.
 
 ### Robustness: the same picture at 4× the model size
 
