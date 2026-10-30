@@ -106,7 +106,7 @@ One step at 100× the learning rate, in an otherwise identical run with the same
 A recovered training loss says nothing about what was forgotten. In the 2B LoRA runs that motivated this repo, the
 same experiment cost 2.7 MMLU points that remained 200 steps later.
 
-### 5. Sampling noise is not required: full-batch training forgets about as much
+### 5. Two mechanisms: large steps, and sampling noise
 
 ![full batch](figures/f6_fullbatch.png)
 
@@ -114,7 +114,19 @@ On 512 examples, full-batch AdamW, which has no minibatch noise at all, forgets 
 at the same task accuracy. So the harmful "noise" is not minibatch sampling as such. Our current reading is that it is
 the optimizer's oscillation along sensitive directions at a large step size. Full-batch Adam at a high LR bounces too
 (Cohen et al. 2021, edge of stability). That fits figures 1 and 3: the step size matters. A larger batch at a
-√-scaled LR gave the damage back in the exploratory runs. Figure 6b, in progress, tests this directly.
+√-scaled LR gave the damage back in the exploratory runs.
+
+![step size](figures/f6b_stepsize.png)
+
+With 2,048 examples (figure 6b) the picture becomes clearer, and there are two mechanisms:
+- **Sampling noise does matter.** At the same epochs and task accuracy, minibatch training forgets 2–4× more than
+  full-batch training, and its damage keeps accumulating.
+- **Step size matters on its own.** Without any sampling noise, full-batch damage roughly doubles from LR 3e-4 to
+  1e-3.
+- **Full-batch training heals.** It shows a large early transient (knowledge loss 0.41 at 30 epochs at LR 1e-3),
+  which it mostly undoes by 100 epochs.
+
+The 512-example case is the special one: the dataset is so small that minibatch noise is weak.
 
 ### 6. Higher LoRA rank adds noise, not learning
 
@@ -174,5 +186,4 @@ text at every step) also works very well on its own, at weight 1.0: knowledge lo
 
 ### Still running
 
-- `f6b_stepsize`: full-batch vs minibatch at two LRs, with jitter measured.
 - `f7_data_quality`: label noise against adaptive weight decay.

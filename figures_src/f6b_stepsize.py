@@ -36,20 +36,20 @@ def compute():
 
 
 def plot(data):
-    fig, axes = plt.subplots(1, 4, figsize=(16, 3.9))
-    for i, (name, ys) in enumerate(data["series"].items()):
-        c = COLORS[i // 2 * 2 + (0 if "full" in name else 1)]
+    # Colour by learning rate, solid for full batch and dashed for minibatch. (Jitter shares are saved in the JSON
+    # but not plotted: the EMA window differs between the arms, so they are not comparable.)
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.9))
+    for name, ys in data["series"].items():
+        c = COLORS[0] if "0.0003" in name else COLORS[1]
         style = "-" if "full" in name else "--"
-        for ax, k in zip(axes, ("task", "bio_nll", "lm", "jitter_share")):
+        for ax, k in zip(axes, ("task", "bio_nll", "lm")):
             band(ax, data["epochs"], [[y[k] for y in row] for row in ys], name, c, style)
-    for ax, title in zip(axes, ("Task accuracy", "Knowledge loss increase", "Language loss increase",
-                                "Jitter share ‖raw−EMA‖²/‖ΔW‖²")):
+    for ax, title in zip(axes, ("Task accuracy", "Knowledge loss increase (NLL)", "Language loss increase")):
         ax.set_xscale("log")
         ax.set_xticks(data["epochs"], [str(e) for e in data["epochs"]])
         ax.minorticks_off()
         ax.set_xlabel("epochs over 2048 examples")
         ax.set_title(title)
-    axes[3].set_yscale("log")
     axes[0].legend(fontsize=7)
     finish(fig, "f6b_stepsize", data)
 
