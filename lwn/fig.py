@@ -6,6 +6,7 @@ possible, and averages over SEEDS independent fine-tunes.
 """
 
 import json
+import os
 from pathlib import Path
 
 import matplotlib
@@ -24,8 +25,16 @@ BIO_ATTRS = ("birth_city", "university", "major", "company", "company_city")
 COLORS = ["#2a6fdb", "#e8590c", "#2b9348", "#c2255c", "#7048e8", "#868e96"]
 
 
+TASK = os.environ.get("LWN_TASK", "features")  # LWN_TASK=badending re-runs a figure on the yes/no task
+
+
 def context():
-    return Context(task="features", n_bio_people=3000, bio_attrs=BIO_ATTRS, n_val=512)
+    return Context(task=TASK, n_bio_people=3000, bio_attrs=BIO_ATTRS, n_val=512)
+
+
+def tag(name):
+    """Figure/result file name: suffixed when run on a non-default model size or task."""
+    return name + ("" if MODEL == "small" else f"-{MODEL}") + ("" if TASK == "features" else f"-{TASK}")
 
 
 def deltas(m, base):
@@ -71,13 +80,13 @@ def log_axes(ax, xticks=None):
 
 
 def load(name):
-    name = name if MODEL == "small" else f"{name}-{MODEL}"
+    name = tag(name)
     p = ROOT / "results" / f"{name}.json"
     return json.loads(p.read_text()) if p.exists() else None
 
 
 def finish(fig, name, data):
-    name = name if MODEL == "small" else f"{name}-{MODEL}"
+    name = tag(name)
     (ROOT / "figures").mkdir(exist_ok=True)
     (ROOT / "results").mkdir(exist_ok=True)
     for ax in fig.axes:
