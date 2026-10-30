@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import torch
 
 from lwn.analysis import add, dot, mean
-from lwn.fig import COLORS, SEEDS, band, context, deltas, finish
+from lwn.fig import COLORS, SEEDS, band, context, deltas, finish, load, log_axes
 from lwn.runs import run
 
 RHOS = (0.005, 0.01, 0.02, 0.04, 0.08)
@@ -17,7 +17,7 @@ def scaled(ctx, d, r):
     return {n: s * x for n, x in d.items()}
 
 
-if __name__ == "__main__":
+def compute():
     ctx = context()
     base = ctx.base_metrics()
     runs = [run(ctx, lr=1e-3, seed=s, steps=1000, snapshots=(1000,)) for s in SEEDS]
@@ -33,17 +33,25 @@ if __name__ == "__main__":
                                          @ torch.randn(16, w.shape[1], generator=g, device="cuda") for n, w in W.items()})
         kinds["SGD drift"].append(add((1, emas[s]), (-1, sig)))
         kinds["SGD jitter"].append(add((1, raws[s]), (-1, emas[s])))
-    data = {}
-    fig, axes = plt.subplots(1, 3, figsize=(13, 3.8))
-    for c, (kind, ds) in zip(COLORS, kinds.items()):
-        ys = [[deltas(ctx.eval_delta(scaled(ctx, d, r)), base) for r in RHOS] for d in ds]
-        data[kind] = ys
-        for ax, k in zip(axes, ("bio_nll", "lm", "kl")):
-            band(ax, [100 * r for r in RHOS], [[y[k] for y in row] for row in ys], kind, c)
-    for ax, title in zip(axes, ("Knowledge loss: Δ NLL", "Language loss: Δ", "KL from base on held-out text")):
-        ax.set_xscale("log")
-        ax.set_yscale("symlog", linthresh=1e-3)
-        ax.set_xlabel("size of the perturbation, ρ (% of ‖W₀‖)")
+    series = {k: [[deltas(ctx.eval_delta(scaled(ctx, d, r)), base) for r in RHOS] for d in ds] for k, ds in kinds.items()}
+    return {"rhos": RHOS, "base": base, "series": series}
+
+def plot(data):
+    rhos = [100 * r for r in data["rhos"]]
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.9))
+    for c, (kind, ys) in zip(COLORS, data["series"].items()):
+        for ax, k in zip(axes, ("lm", "kl", "bio_nll")):
+            band(ax, rhos, [[y[k] for y in row] for row in ys], kind, c, log=True)
+    for ax, title in zip(axes, ("Language loss increase", "KL from base on held-out text", "Knowledge loss increase (NLL)")):
+        log_axes(ax, rhos)
+        ax.set_xlabel("size of the added noise, ρ (% of ‖W₀‖)")
         ax.set_title(title)
     axes[0].legend(fontsize=8)
-    finish(fig, "f2_injection", {"rhos": RHOS, "base": base, "series": data})
+    finish(fig, "f2_injection", data)
+
+
+if __name__ == "__main__":
+    data = load("f2_injection")
+    if data is None:
+        data = compute()
+    plot(data)

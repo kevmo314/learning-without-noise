@@ -40,13 +40,38 @@ def mean_ci(xs):
     return float(xs.mean()), float(1.96 * xs.std(ddof=1) / np.sqrt(len(xs)))
 
 
-def band(ax, x, ys, label, color, style="-"):
-    """Plot the mean over seeds (ys: [seed][point]) with a shaded 95% CI."""
+def band(ax, x, ys, label, color, style="-", log=False, floor=1e-4):
+    """Plot the mean over seeds (ys: [seed][point]) with a shaded 95% CI.
+
+    With log=True the statistics are taken on log(max(y, floor)): a geometric mean whose band is multiplicative,
+    so one large seed doesn't swamp a quantity that spans orders of magnitude.
+    """
     ys = np.asarray(ys, dtype=float)
+    if log:
+        ys = np.log(np.maximum(ys, floor))
     m = ys.mean(0)
     ci = 1.96 * ys.std(0, ddof=1) / np.sqrt(len(ys)) if len(ys) > 1 else np.zeros_like(m)
-    ax.plot(x, m, style, color=color, label=label, lw=2)
-    ax.fill_between(x, m - ci, m + ci, color=color, alpha=0.18, lw=0)
+    lo, hi = m - ci, m + ci
+    if log:
+        m, lo, hi = np.exp(m), np.exp(lo), np.exp(hi)
+    ax.plot(x, m, style, color=color, label=label, lw=2, marker="o", ms=3)
+    ax.fill_between(x, lo, hi, color=color, alpha=0.18, lw=0)
+
+
+def log_axes(ax, xticks=None):
+    from matplotlib.ticker import FuncFormatter, NullFormatter
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    if xticks is not None:
+        ax.set_xticks(xticks)
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.xaxis.set_minor_formatter(NullFormatter())
+
+
+def load(name):
+    p = ROOT / "results" / f"{name}.json"
+    return json.loads(p.read_text()) if p.exists() else None
 
 
 def finish(fig, name, data):
