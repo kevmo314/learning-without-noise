@@ -65,6 +65,7 @@ class FT:
     wd: float = 0.0  # decoupled decay of dW toward the base: dW <- (1 - lr wd) dW each step
     awd: float = 0.0  # adaptive decay (Ghiasi et al. 2023) toward the base: wd_t = awd * ||grad|| / ||dW||
     gpm_energy: float = 0.9  # gpm: fraction of pretraining activation energy whose subspace the adapter avoids
+    gpm_source: str = "val"  # gpm: estimate that subspace from held-out stories ("val") or the pretraining mix ("mix")
     subset: int | None = None  # train on only the first `subset` task examples; batch >= subset means full-batch GD
     optimizer: str = "adamw"  # adamw | sgd (momentum 0.9)
     snapshots: tuple[int, ...] = (125, 250, 500, 1000)
@@ -143,15 +144,17 @@ class Context:
         return self._fisher
 
     @torch.no_grad()
-    def activation_basis(self, energy):
-        """Per adapted matrix, the top input directions holding `energy` of held-out activations' squared norm."""
-        if energy not in self._basis:
+    def activation_basis(self, energy, source="val"):
+        """Per adapted matrix, the top input directions holding `energy` of activations' squared norm, on held-out
+        stories ("val") or on a fixed sample of the pretraining mixture, biographies included ("mix")."""
+        if (energy, source) not in self._basis:
             acts, hooks = {}, []
             mods = {n: m for n, m in self.eval_model.named_modules() if n in self.names}
             for n, m in mods.items():
                 hooks.append(m.register_forward_hook(
                     lambda mod, i, o, n=n: acts.setdefault(n, []).append(i[0].reshape(-1, i[0].shape[-1]))))
-            self.eval_model(input_ids=self.data.val[:32, :-1].cuda())
+            x = self.data.val[:32] if source == "val" else self.data.lm_batch(32, np.random.default_rng(123))
+            self.eval_model(input_ids=x[:, :-1].cuda())
             for h in hooks:
                 h.remove()
             out = {}
@@ -159,15 +162,15 @@ class Context:
                 U, S, _ = torch.linalg.svd(torch.cat(xs).T.double(), full_matrices=False)
                 frac = S.square().cumsum(0) / S.square().sum()
                 out[n] = U[:, : int((frac < energy).sum()) + 1].float()
-            self._basis[energy] = out
-        return self._basis[energy]
+            self._basis[(energy, source)] = out
+        return self._basis[(energy, source)]
 
 
 def finetune(ctx, cfg):
     """Run one fine-tune. Returns per-snapshot dW (raw, EMA, cooldown branches) and metrics along the way."""
     data = ctx.data
     model = ctx.fresh()
-    basis = ctx.activation_basis(cfg.gpm_energy) if cfg.method == "gpm" else None
+    basis = ctx.activation_basis(cfg.gpm_energy, cfg.gpm_source) if cfg.method == "gpm" else None
     ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis)
     if cfg.optimizer == "sgd":
         opt = torch.optim.SGD(ad.params(), lr=cfg.lr, momentum=0.9)

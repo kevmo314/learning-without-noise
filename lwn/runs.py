@@ -10,7 +10,7 @@ from .train import FT, finetune
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "results" / "runs"
-LATER = {"subset": None, "optimizer": "adamw"}
+LATER = {"subset": None, "optimizer": "adamw", "gpm_source": "val"}
 
 
 def run(ctx, **kw):
