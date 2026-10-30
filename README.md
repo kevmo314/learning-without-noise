@@ -206,6 +206,13 @@ Figures 1 and 3 were re-run on the easier yes/no task (`LWN_TASK=badending`, fil
   - adaptive weight decay does nothing;
   - GPM protects language (+0.007) but not knowledge.
 
+### Robustness: the same picture at 4× the model size
+
+A 27M-parameter base (8 layers, width 512; `LWN_MODEL=large`, files suffixed `-large`) reaches held-out language loss
+1.215 and knowledge recall 72% (the 7.4M model reaches 1.355 and 54%).
+- [Training curves](figures/f1_curves-large.png): the same shape, with somewhat more forgetting at LR 1e-3 (knowledge
+  +0.88, language +1.0 at 2000 steps; +0.04 at LR 1e-4) and a clearer EMA benefit.
+
 ### Still running
 
 - The 27M-parameter scale check of figures 1, 2, 3 and 11.
