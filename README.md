@@ -144,9 +144,22 @@ same task accuracy as LoRA, it cuts language-loss damage 10–25× and knowledge
 subspace from pretraining-mixture text (biographies included) rather than stories alone protects knowledge best at
 the 90% setting. The 99% mixture setting is noisier and worse, which is not yet explained.
 
+### 9. Where the update lands decides what each unit of change costs
+
+![subspace](figures/f5_subspace.png)
+
+Same task and same task accuracy (about 91%) for every method. The KL per unit ρ² spans more than 100×, ordered by
+how much of the update acts on the input directions that pretraining text uses:
+- GPM (none of it) is cheapest;
+- MiLoRA and LoRA are in the middle;
+- PiSSA and OLoRA, which start from the base matrix's principal directions, and full fine-tuning are the most
+  expensive.
+
+PiSSA and OLoRA are run at a tenth of the LR here, because their large initial factors otherwise move the weights
+much faster. Even matched that way, they cost 6–8× LoRA per unit change. The right panel is close to a consistency
+check (KL ≈ ½ · curvature · ρ² for small moves), and it confirms the updates are still in that regime.
+
 ### Still running
 
-- `f5_subspace`: damage per unit distance against the share of the update on pretraining-active directions, for
-  LoRA, MiLoRA, PiSSA, OLoRA, GPM and full fine-tuning.
 - `f6b_stepsize`: full-batch vs minibatch at two LRs, with jitter measured.
 - `f7_data_quality`: label noise against adaptive weight decay.
