@@ -14,9 +14,13 @@ from lwn.adapters import rho
 from lwn.runs import run, save, summary, table
 from lwn.train import Context
 
-METHODS = {"lora": {}, "pissa": {}, "milora": {}, "olora": {}, "gpm": {"gpm_energy": 0.9},
-           "gpm99": {"method": "gpm", "gpm_energy": 0.99}, "full": {"lr": 1e-4}}
 LR = 1e-3
+# PiSSA/OLoRA factors start at the size of W0's top singular values, so each Adam step moves dW much further than
+# LoRA's (zero-initialised B): an effective LR boost. The LR-reduced arms separate that from the choice of subspace.
+METHODS = {"lora": {}, "pissa": {}, "pissa lr/3": {"method": "pissa", "lr": LR / 3},
+           "pissa lr/10": {"method": "pissa", "lr": LR / 10}, "milora": {}, "olora": {},
+           "olora lr/10": {"method": "olora", "lr": LR / 10}, "gpm": {"gpm_energy": 0.9},
+           "gpm99": {"method": "gpm", "gpm_energy": 0.99}, "full": {"lr": 1e-4}}
 
 if __name__ == "__main__":
     ctx = Context()

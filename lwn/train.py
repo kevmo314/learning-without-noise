@@ -65,6 +65,8 @@ class FT:
     wd: float = 0.0  # decoupled decay of dW toward the base: dW <- (1 - lr wd) dW each step
     awd: float = 0.0  # adaptive decay (Ghiasi et al. 2023) toward the base: wd_t = awd * ||grad|| / ||dW||
     gpm_energy: float = 0.9  # gpm: fraction of pretraining activation energy whose subspace the adapter avoids
+    subset: int | None = None  # train on only the first `subset` task examples; batch >= subset means full-batch GD
+    optimizer: str = "adamw"  # adamw | sgd (momentum 0.9)
     snapshots: tuple[int, ...] = (125, 250, 500, 1000)
     eval_every: int = 0  # 0: evaluate at snapshots only
     extra: dict = field(default_factory=dict)
@@ -166,7 +168,10 @@ def finetune(ctx, cfg):
     model = ctx.fresh()
     basis = ctx.activation_basis(cfg.gpm_energy) if cfg.method == "gpm" else None
     ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis)
-    opt = torch.optim.AdamW(ad.params(), lr=cfg.lr, betas=(0.9, 0.999), weight_decay=0.0)
+    if cfg.optimizer == "sgd":
+        opt = torch.optim.SGD(ad.params(), lr=cfg.lr, momentum=0.9)
+    else:
+        opt = torch.optim.AdamW(ad.params(), lr=cfg.lr, betas=(0.9, 0.999), weight_decay=0.0)
     dseed = cfg.seed if cfg.data_seed is None else cfg.data_seed
     rng = np.random.default_rng(dseed)
     ema = ad.state() if cfg.ema_examples else None
@@ -178,7 +183,12 @@ def finetune(ctx, cfg):
     def step_once(lr, r):
         for g in opt.param_groups:
             g["lr"] = lr
-        batch, labels = data.task_batch(cfg.batch, r)
+        if cfg.subset and cfg.batch >= cfg.subset:  # deterministic full-batch gradient
+            batch, labels = data.task_batch(0, r, idx=list(range(cfg.subset)))
+        elif cfg.subset:
+            batch, labels = data.task_batch(0, r, idx=list(r.integers(cfg.subset, size=cfg.batch)))
+        else:
+            batch, labels = data.task_batch(cfg.batch, r)
         if cfg.label_noise:
             flip = torch.from_numpy(r.random(len(labels)) < cfg.label_noise)
             labels = torch.where(flip, data.yes + data.no - labels, labels)
