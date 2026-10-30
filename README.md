@@ -159,6 +159,19 @@ PiSSA and OLoRA are run at a tenth of the LR here, because their large initial f
 much faster. Even matched that way, they cost 6–8× LoRA per unit change. The right panel is close to a consistency
 check (KL ≈ ½ · curvature · ρ² for small moves), and it confirms the updates are still in that regime.
 
+### 10. Combined, the fixes remove nearly all of the forgetting
+
+![combined](figures/f11_combined.png)
+
+| | knowledge loss | language loss | task |
+|---|---|---|---|
+| baseline (LR 1e-3, raw weights) | +0.27 | +0.40 | 89.7% |
+| lower LR + EMA + GPM | **+0.009** | **+0.004** | 90.8% |
+
+The combination cuts forgetting 30–100× and still beats the baseline on the task. Replay (an LM loss on pretraining
+text at every step) also works very well on its own, at weight 1.0: knowledge loss +0.016 and the best task accuracy
+(92.0%). The catch is that it needs pretraining-like data at fine-tuning time.
+
 ### Still running
 
 - `f6b_stepsize`: full-batch vs minibatch at two LRs, with jitter measured.
