@@ -215,6 +215,11 @@ A 27M-parameter base (8 layers, width 512; `LWN_MODEL=large`, files suffixed `-l
 1.215 and knowledge recall 72% (the 7.4M model reaches 1.355 and 54%).
 - [Training curves](figures/f1_curves-large.png): the same shape, with somewhat more forgetting at LR 1e-3 (knowledge
   +0.88, language +1.0 at 2000 steps; +0.04 at LR 1e-4) and a clearer EMA benefit.
+- [Mitigations](figures/f3_mitigations-large.png): the same ordering.
+  - Knowledge loss falls 5× with a lower LR, 2.7× with a 4× batch and 2× with cosine decay.
+  - Averaging six seeds nearly halves it, and task accuracy rises from 89.1% to 91.9%.
+  - The 2% cap retains best but costs the most task accuracy.
+  - GPM leaves language untouched; adaptive weight decay does nothing.
 
 ### Still running
 
