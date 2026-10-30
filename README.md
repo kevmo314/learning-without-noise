@@ -226,7 +226,8 @@ A 27M-parameter base (8 layers, width 512; `LWN_MODEL=large`, files suffixed `-l
   - A 100× spike leaves knowledge loss about 7× the control's and language loss at +8 nats.
 - [Combined fixes](figures/f11_combined-large.png): lower LR + EMA + GPM cuts knowledge loss from 0.42 to 0.019 and
   language loss from 0.41 to 0.003. Task accuracy rises from 89.1% to 91.3%.
+- [Noise injection](figures/f2_injection-large.png): measured jitter does 10–16× the language damage of random noise
+  of the same size, and drift about 3×.
+- [GPM](figures/f10_gpm-large.png): cuts language damage 20–50× and knowledge damage 2.5–3.5× at equal task
+  accuracy. Estimating the subspace on the pretraining mixture is again best at 0.9.
 
-### Still running
-
-- The 27M-parameter scale check of figures 1, 2, 3 and 11.
