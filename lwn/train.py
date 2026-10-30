@@ -60,7 +60,7 @@ class FT:
     spike: tuple[int, float] | None = None  # (step, LR multiplier) for one step
     cooldown_from: tuple[int, ...] = ()  # branch here and decay LR linearly to 0 over 20% more steps
     replay: float = 0.0  # weight of an LM loss on pretraining text added to every step
-    label_noise: float = 0.0  # fraction of fine-tuning labels flipped
+    label_noise: float = 0.0  # fraction of fine-tuning labels replaced by a random answer
     ewc: float = 0.0  # weight of a diagonal-Fisher penalty on dW (Fisher of the base on held-out text)
     wd: float = 0.0  # decoupled decay of dW toward the base: dW <- (1 - lr wd) dW each step
     awd: float = 0.0  # adaptive decay (Ghiasi et al. 2023) toward the base: wd_t = awd * ||grad|| / ||dW||
@@ -192,7 +192,9 @@ def finetune(ctx, cfg):
             batch, labels = data.task_batch(cfg.batch, r)
         if cfg.label_noise:
             flip = torch.from_numpy(r.random(len(labels)) < cfg.label_noise)
-            labels = torch.where(flip, data.yes + data.no - labels, labels)
+            choices = torch.tensor(data.choices)
+            wrong = choices[torch.from_numpy(r.integers(len(choices), size=len(labels)))]
+            labels = torch.where(flip, wrong, labels)  # a random answer (possibly the right one, as with real noise)
         opt.zero_grad(set_to_none=True)
         (ids, att), n, total = batch, len(labels), 0.0
         for i in range(0, n, 128):  # gradient accumulation keeps full-batch runs within memory
