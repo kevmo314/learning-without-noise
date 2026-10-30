@@ -10,10 +10,10 @@ import numpy as np
 import torch
 
 from .adapters import Adapter, rho
-from .model import Data, evaluate, lm_loss, make_model, targets, task_loss, val_logp
+from .model import MODEL, Data, evaluate, lm_loss, make_model, targets, task_loss, val_logp
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = ROOT / "results" / "base.pt"
+BASE = ROOT / "results" / ("base.pt" if MODEL == "small" else f"base-{MODEL}.pt")
 
 
 def pretrain(steps=20_000, batch=64, lr=2e-3, seed=0, log_every=1000):

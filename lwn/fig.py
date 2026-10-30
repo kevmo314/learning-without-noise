@@ -14,6 +14,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .model import MODEL
 from .train import Context
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,11 +71,13 @@ def log_axes(ax, xticks=None):
 
 
 def load(name):
+    name = name if MODEL == "small" else f"{name}-{MODEL}"
     p = ROOT / "results" / f"{name}.json"
     return json.loads(p.read_text()) if p.exists() else None
 
 
 def finish(fig, name, data):
+    name = name if MODEL == "small" else f"{name}-{MODEL}"
     (ROOT / "figures").mkdir(exist_ok=True)
     (ROOT / "results").mkdir(exist_ok=True)
     for ax in fig.axes:

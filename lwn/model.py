@@ -9,6 +9,7 @@ The fine-tuning task is "Does this story have a bad ending?" answered " yes" or 
 """
 
 import json
+import os
 import random
 from pathlib import Path
 
@@ -33,7 +34,14 @@ TASKS = {
 BUCKETS = [(0, 30), (30, 300), (300, 3000), (3000, 10_000)]  # exposure rank ranges, most to least frequent
 
 
-def make_model(vocab, n_layer=8, n_embd=256, n_head=8, seed=0):
+# Model sizes, chosen with LWN_MODEL=small|large (default small, the 7.4M model every figure uses).
+SIZES = {"small": dict(n_layer=8, n_embd=256, n_head=8), "large": dict(n_layer=8, n_embd=512, n_head=8)}
+MODEL = os.environ.get("LWN_MODEL", "small")
+
+
+def make_model(vocab, seed=0, **size):
+    size = size or SIZES[MODEL]
+    n_layer, n_embd, n_head = size["n_layer"], size["n_embd"], size["n_head"]
     torch.manual_seed(seed)
     cfg = GPT2Config(vocab_size=vocab, n_positions=CTX, n_embd=n_embd, n_layer=n_layer, n_head=n_head,
                      resid_pdrop=0.0, embd_pdrop=0.0, attn_pdrop=0.0, bos_token_id=0, eos_token_id=0)
