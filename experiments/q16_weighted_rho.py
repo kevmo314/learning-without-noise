@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 from lwn.fig import SEEDS, context, deltas, tag
-from lwn.model import targets
+from lwn.model import pad, targets
 from lwn.runs import run, save
 
 GPM = {"gpm_source": "mix"}
@@ -32,7 +32,7 @@ def covariances(ctx, n=32):
     model, names = ctx.eval_model, ctx.names
     mods = {k: m for k, m in model.named_modules() if k in names}
     out = {}
-    for src in ("mix", "task"):
+    for src in ("mix", "task", "bio"):
         acc, cnt, hooks, mask = {}, [0], [], {}
 
         def hook(n_):
@@ -48,6 +48,13 @@ def covariances(ctx, n=32):
             x = ctx.data.lm_batch(n, np.random.default_rng(123))[:, :-1].cuda()
             model(input_ids=x)
             tokens = x.numel()
+        elif src == "bio":  # knowledge-probe prompts with their true answer, as the probe scores them
+            items = np.random.default_rng(123).choice(len(ctx.data.bio), n * 8, replace=False)
+            (ids, att) = pad([ctx.data.bio[i]["prompt"] + ctx.data.bio[i]["cands"][0] for i in items])
+            mask["m"] = att.reshape(-1).bool().cuda()
+            pos = (att.cumsum(1) - 1).clamp_min(0)
+            model.transformer(input_ids=ids.cuda(), attention_mask=att.cuda(), position_ids=pos.cuda())
+            tokens = int(att.sum())
         else:
             (ids, att), _ = ctx.data.task_batch(n * 2, np.random.default_rng(123))
             mask["m"] = att.reshape(-1).bool().cuda()
@@ -80,10 +87,11 @@ if __name__ == "__main__":
         U = ctx.activation_basis(e, "mix")
         free = lambda Cs: sum(float(torch.trace(Cs[n]) - torch.trace(U[n].double().T @ Cs[n] @ U[n].double()))
                               for n in Cs) / sum(float(torch.trace(Cs[n])) for n in Cs)
-        pred[e] = {"pre_free": free(C["mix"]), "task_free": free(C["task"])}
+        pred[e] = {"pre_free": free(C["mix"]), "task_free": free(C["task"]), "bio_free": free(C["bio"])}
         pred[e]["ratio"] = pred[e]["pre_free"] / pred[e]["task_free"]
         print(f"energy {e}: pretraining energy free {pred[e]['pre_free']:.3f}, task energy free "
-              f"{pred[e]['task_free']:.3f}, leakage/room {pred[e]['ratio']:.3f}", flush=True)
+              f"{pred[e]['task_free']:.3f}, biography energy free {pred[e]['bio_free']:.3f}, "
+              f"leakage/room {pred[e]['ratio']:.3f}", flush=True)
 
     arms = {f"GPM {e}": {"method": "gpm", "gpm_energy": e, **GPM} for e in ENERGIES}
     arms.update({f"LoRA r{r}": {"rank": r} for r in RANKS})
@@ -93,12 +101,13 @@ if __name__ == "__main__":
             dW = run(ctx, lr=1e-3, steps=1000, snapshots=(1000,), seed=s, **kw)["snaps"][1000]["ema"]
             m = deltas(ctx.eval_delta(dW), base)
             r = {"arm": name, "seed": s, "rho": (sum(float(d.double().square().sum()) for d in dW.values()) / w0) ** 0.5,
-                 "rho_C": weighted(dW, W0, C["mix"]), "rho_task": weighted(dW, W0, C["task"]), **m}
+                 "rho_C": weighted(dW, W0, C["mix"]), "rho_task": weighted(dW, W0, C["task"]),
+                 "rho_bio": weighted(dW, W0, C["bio"]), **m}
             rows.append(r)
         g = [r for r in rows if r["arm"] == name]
         print(name, " ".join(f"{k} {np.mean([r[k] for r in g]):.4g}" for k in
-                             ("rho", "rho_C", "rho_task", "task", "bio_nll", "lm")), flush=True)
+                             ("rho", "rho_C", "rho_task", "rho_bio", "task", "bio_nll", "lm")), flush=True)
     for k in ("bio_nll", "lm", "kl"):
         print(k, " ".join(f"spearman vs {x}: {spearman([r[x] for r in rows], [r[k] for r in rows]):.3f}"
-                          for x in ("rho", "rho_C", "rho_task")))
+                          for x in ("rho", "rho_C", "rho_task", "rho_bio")))
     save(tag("q16_weighted_rho"), {"pred": pred, "rows": rows})

@@ -1,4 +1,4 @@
-"""Muon vs AdamW vs SGD, with and without GPM: forgetting at matched task accuracy.
+"""Muon vs AdamW vs SGD, with and without GPM, and with a PiSSA start: forgetting at matched task accuracy.
 
 Muon orthogonalises each update (U V^T of the momentum), which gives every singular direction of the gradient the same
 size. Relative to SGD and AdamW, that turns down the dominant input directions, the ones ordinary text uses most, so
@@ -20,6 +20,9 @@ ARMS = {
     "SGD": ({"optimizer": "sgd"}, (0.03, 0.1, 0.3, 1.0)),
     "GPM + AdamW": (GPM, (1e-4, 3e-4, 1e-3, 3e-3)),
     "GPM + Muon": ({**GPM, "optimizer": "muon"}, (1e-3, 3e-3, 1e-2, 3e-2)),
+    "PiSSA + AdamW": ({"method": "pissa"}, (3e-5, 1e-4, 3e-4, 1e-3)),
+    "PiSSA + Muon": ({"method": "pissa", "optimizer": "muon"}, (1e-4, 3e-4, 1e-3, 3e-3, 1e-2)),
+    "PiSSA-GPM + AdamW": ({**GPM, "method": "pissa-gpm"}, (3e-5, 1e-4, 3e-4, 1e-3)),
 }
 
 if __name__ == "__main__":
