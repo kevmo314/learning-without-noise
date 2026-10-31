@@ -181,18 +181,44 @@ class Context:
             self._basis[key] = out
         return self._basis[key]
 
+    def _heldout_bios(self, tokens):
+        """Biographies (as in pretraining) of people the knowledge probe never asks about, packed into rows of the
+        context length, about `tokens` tokens in all."""
+        import json as _json
+        import random as _random
+
+        from .corpus import render_bio
+        from .model import CTX, DATA
+
+        pop = _json.loads((DATA / "people.json").read_text())
+        probed = {it["rank"] for it in self.data.bio}
+        rng = _random.Random(5)
+        stream = []
+        for i in rng.sample([i for i in range(len(pop)) if i not in probed], len(pop) - len(probed)):
+            stream += self.data.tok.encode(render_bio(pop[i], rng)).ids
+            if len(stream) >= tokens:
+                break
+        rows = len(stream) // CTX
+        return torch.tensor(stream[: rows * CTX]).view(rows, CTX)
+
     @torch.no_grad()
     def activation_basis(self, energy, source="val"):
         """Per adapted matrix, the top input directions holding `energy` of activations' squared norm, on held-out
-        stories ("val") or on a fixed sample of the pretraining mixture, biographies included ("mix")."""
+        stories ("val"), on a fixed sample of the pretraining mixture, biographies included ("mix"), on biographies of
+        people the knowledge probe does not ask about ("bio": knowledge-dense text with no probe leakage), or on the
+        mixture plus as many tokens of those biographies ("mix+bio")."""
         if (energy, source) not in self._basis:
             acts, hooks = {}, []
             mods = {n: m for n, m in self.eval_model.named_modules() if n in self.names}
             for n, m in mods.items():
                 hooks.append(m.register_forward_hook(
                     lambda mod, i, o, n=n: acts.setdefault(n, []).append(i[0].reshape(-1, i[0].shape[-1]))))
-            x = self.data.val[:32] if source == "val" else self.data.lm_batch(32, np.random.default_rng(123))
-            self.eval_model(input_ids=x[:, :-1].cuda())
+            if source == "val":
+                self.eval_model(input_ids=self.data.val[:32, :-1].cuda())
+            if source in ("mix", "mix+bio"):
+                self.eval_model(input_ids=self.data.lm_batch(32, np.random.default_rng(123))[:, :-1].cuda())
+            if source in ("bio", "mix+bio"):
+                self.eval_model(input_ids=self._heldout_bios(32 * self.data.val.shape[1]).cuda())
             for h in hooks:
                 h.remove()
             out = {}
