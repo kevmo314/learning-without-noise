@@ -46,7 +46,7 @@ def pretrain(steps=20_000, batch=64, lr=2e-3, seed=0, log_every=1000):
 class FT:
     """One fine-tuning run. Defaults mirror the LoRA recipe studied in the main project."""
 
-    method: str = "lora"  # lora | pissa | milora | olora | gpm | pissa-gpm | full
+    method: str = "lora"  # lora | pissa | milora | olora | gpm | pissa-gpm | pissa-gpm-norm | full
     rank: int = 16
     lr: float = 1e-3
     schedule: str = "const"  # const | cosine | isqrt | linear (each with a 30-step warmup)
@@ -171,7 +171,7 @@ def finetune(ctx, cfg):
     """Run one fine-tune. Returns per-snapshot dW (raw, EMA, cooldown branches) and metrics along the way."""
     data = ctx.data
     model = ctx.fresh()
-    basis = ctx.activation_basis(cfg.gpm_energy, cfg.gpm_source) if cfg.method in ("gpm", "pissa-gpm") else None
+    basis = ctx.activation_basis(cfg.gpm_energy, cfg.gpm_source) if cfg.method in ("gpm", "pissa-gpm", "pissa-gpm-norm") else None
     ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis)
     if cfg.optimizer == "sgd":
         opt = torch.optim.SGD(ad.params(), lr=cfg.lr, momentum=0.9)

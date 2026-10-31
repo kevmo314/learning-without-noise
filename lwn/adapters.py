@@ -10,6 +10,8 @@ gpm     lora whose input directions (rows of A) are kept orthogonal to the subsp
         Saha et al. 2021, applied to the pretraining distribution; pass `basis` from Context.activation_basis)
 pissa-gpm  pissa conditioned on gpm: A, B start at the top-r singular triplets of W0 restricted to gpm's allowed
         inputs (W0^T (I - U U^T)), and A stays there, so dW x = 0 on pretraining-like inputs as for gpm
+pissa-gpm-norm  pissa-gpm renormalized after constraining: the same directions, scaled to W0's own top-r singular
+        values, so the start (and the first gradients) are as large as unconstrained pissa's
 full    every adapted matrix is trained directly; dW = W - W0
 All matrices use the GPT-2 Conv1D layout [in, out], so dW_m has the shape of W0_m.
 """
@@ -35,7 +37,7 @@ class Adapter:
                 m.weight.requires_grad_(True)
             return
         g = torch.Generator(device="cpu").manual_seed(seed)
-        if method in ("gpm", "pissa-gpm"):  # I - U U^T on the input side of each matrix
+        if method in ("gpm", "pissa-gpm", "pissa-gpm-norm"):  # I - U U^T on the input side of each matrix
             self.proj = {n: torch.eye(U.shape[0], device=U.device) - U @ U.T for n, U in basis.items()}
         for n, m in self.mods.items():
             nin, nout = m.weight.shape
@@ -50,10 +52,12 @@ class Adapter:
                     m.weight -= (self.scale * (B @ A).T).to(m.weight)
             else:
                 W = m.weight.detach().T
-                if method == "pissa-gpm":
+                if method.startswith("pissa-gpm"):
                     W = W @ self.proj[n]
                 U, S, Vh = torch.linalg.svd(W.cpu().double(), full_matrices=False)
                 k = slice(len(S) - rank, len(S)) if method == "milora" else slice(0, rank)
+                if method == "pissa-gpm-norm":  # renormalize after constraining: W0's own top-r singular values
+                    S = torch.linalg.svdvals(m.weight.detach().T.cpu().double())
                 r = (S[k] / self.scale).sqrt()
                 A, B = (r[:, None] * Vh[k]).float(), (U[:, k] * r).float()
                 with torch.no_grad():  # frozen residual: W0 - s (B0 A0)^T
