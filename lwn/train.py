@@ -67,7 +67,7 @@ class FT:
     gpm_energy: float = 0.9  # gpm: fraction of pretraining activation energy whose subspace the adapter avoids
     gpm_source: str = "val"  # gpm: estimate that subspace from held-out stories ("val") or the pretraining mix ("mix")
     subset: int | None = None  # train on only the first `subset` task examples; batch >= subset means full-batch GD
-    optimizer: str = "adamw"  # adamw | sgd (momentum 0.9)
+    optimizer: str = "adamw"  # adamw | sgd (momentum 0.9) | muon (orthogonalised momentum, AdamW-matched RMS)
     snapshots: tuple[int, ...] = (125, 250, 500, 1000)
     eval_every: int = 0  # 0: evaluate at snapshots only
     evals: tuple[int, ...] = ()  # extra steps evaluated in training, raw and EMA (dense curves without stored dW)
@@ -175,6 +175,8 @@ def finetune(ctx, cfg):
     ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis)
     if cfg.optimizer == "sgd":
         opt = torch.optim.SGD(ad.params(), lr=cfg.lr, momentum=0.9)
+    elif cfg.optimizer == "muon":  # every LoRA factor is 2-D; match_rms_adamw keeps the LR on AdamW's scale
+        opt = torch.optim.Muon(ad.params(), lr=cfg.lr, weight_decay=0.0, adjust_lr_fn="match_rms_adamw")
     else:
         opt = torch.optim.AdamW(ad.params(), lr=cfg.lr, betas=(0.9, 0.999), weight_decay=0.0)
     dseed = cfg.seed if cfg.data_seed is None else cfg.data_seed
