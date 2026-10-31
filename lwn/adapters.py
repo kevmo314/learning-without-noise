@@ -24,7 +24,7 @@ from .model import targets
 
 
 class Adapter:
-    def __init__(self, model, method="lora", rank=8, alpha=None, seed=0, basis=None):
+    def __init__(self, model, method="lora", rank=8, alpha=None, seed=0, basis=None, basis_out=None):
         self.model, self.method, self.rank = model, method, rank
         self.scale = (alpha or rank) / rank
         self.mods = targets(model)
@@ -32,6 +32,9 @@ class Adapter:
         for p in model.parameters():
             p.requires_grad_(False)
         self.A, self.B, self.A0, self.B0, self.hooks, self.proj = {}, {}, {}, {}, [], None
+        # Output-side protection (two-sided GPM): B's columns kept out of the top output-gradient directions, so dW
+        # does not write where the loss on pretraining-like text is most sensitive.
+        self.proj_out = {n: torch.eye(V.shape[0], device=V.device) - V @ V.T for n, V in (basis_out or {}).items()}
         if method == "full":
             for m in self.mods.values():
                 m.weight.requires_grad_(True)
@@ -116,6 +119,8 @@ class Adapter:
         if self.proj:
             for n, P in self.proj.items():
                 self.A[n].copy_(self.A[n] @ P)
+        for n, P in self.proj_out.items():
+            self.B[n].copy_(P @ self.B[n])
 
     @torch.no_grad()
     def shrink(self, c):

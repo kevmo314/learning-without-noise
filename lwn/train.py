@@ -66,6 +66,7 @@ class FT:
     awd: float = 0.0  # adaptive decay (Ghiasi et al. 2023) toward the base: wd_t = awd * ||grad|| / ||dW||
     gpm_energy: float = 0.9  # gpm: fraction of pretraining activation energy whose subspace the adapter avoids
     gpm_source: str = "val"  # gpm: estimate that subspace from held-out stories ("val") or the pretraining mix ("mix")
+    gpm_out: float = 0.0  # > 0: also keep B out of the output-gradient directions holding this share of the energy
     subset: int | None = None  # train on only the first `subset` task examples; batch >= subset means full-batch GD
     optimizer: str = "adamw"  # adamw | sgd (momentum 0.9) | muon (orthogonalised momentum, AdamW-matched RMS)
     snapshots: tuple[int, ...] = (125, 250, 500, 1000)
@@ -144,6 +145,42 @@ class Context:
             self._fisher = {n: f / tokens for n, f in fis.items()}
         return self._fisher
 
+    def output_basis(self, energy, n=32):
+        """Per adapted matrix, the top output directions holding `energy` of the loss-gradient covariance at its output
+        (the G factor of the K-FAC Fisher), on the pretraining mixture with next tokens sampled from the base model."""
+        key = ("out", energy)
+        if key not in self._basis:
+            model = self.fresh()
+            for p in model.parameters():
+                p.requires_grad_(False)
+            model.transformer.wte.weight.requires_grad_(True)  # so every layer's output carries a gradient
+            mods = {k: m for k, m in model.named_modules() if k in self.names}
+            G, hooks = {k: 0 for k in mods}, []
+
+            def fwd(k):
+                def f(mod, i, o):
+                    o.register_hook(lambda g: G.__setitem__(k, G[k] + g.reshape(-1, g.shape[-1]).double().T
+                                                            @ g.reshape(-1, g.shape[-1]).double()))
+                return f
+
+            hooks = [m.register_forward_hook(fwd(k)) for k, m in mods.items()]
+            x = self.data.lm_batch(n, np.random.default_rng(123))[:, :-1].cuda()
+            for i in range(0, n, 8):
+                logits = model(input_ids=x[i : i + 8]).logits.float()
+                y = torch.distributions.Categorical(logits=logits).sample()
+                torch.nn.functional.cross_entropy(logits.reshape(-1, logits.shape[-1]), y.reshape(-1),
+                                                  reduction="sum").backward()
+            for h in hooks:
+                h.remove()
+            out = {}
+            for k, g in G.items():
+                S, V = torch.linalg.eigh(g)
+                S, V = S.flip(0).clamp_min(0), V.flip(1)
+                frac = S.cumsum(0) / S.sum()
+                out[k] = V[:, : int((frac < energy).sum()) + 1].float()
+            self._basis[key] = out
+        return self._basis[key]
+
     @torch.no_grad()
     def activation_basis(self, energy, source="val"):
         """Per adapted matrix, the top input directions holding `energy` of activations' squared norm, on held-out
@@ -172,7 +209,8 @@ def finetune(ctx, cfg):
     data = ctx.data
     model = ctx.fresh()
     basis = ctx.activation_basis(cfg.gpm_energy, cfg.gpm_source) if cfg.method in ("gpm", "pissa-gpm", "pissa-gpm-norm") else None
-    ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis)
+    basis_out = ctx.output_basis(cfg.gpm_out) if cfg.gpm_out else None
+    ad = Adapter(model, cfg.method, cfg.rank, seed=cfg.seed, basis=basis, basis_out=basis_out)
     if cfg.optimizer == "sgd":
         opt = torch.optim.SGD(ad.params(), lr=cfg.lr, momentum=0.9)
     elif cfg.optimizer == "muon":  # every LoRA factor is 2-D; match_rms_adamw keeps the LR on AdamW's scale
