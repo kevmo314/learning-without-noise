@@ -8,7 +8,9 @@ from lwn.fig import SEEDS, context, deltas, mean_ci, tag
 from lwn.runs import run, save, table
 
 GPM = {"gpm_energy": 0.9, "gpm_source": "mix"}
-ARMS = {"LoRA": {"method": "lora"}, "GPM": {"method": "gpm", **GPM},
+ARMS = {"LoRA": {"method": "lora"}, "LoRA LR/10": {"method": "lora", "lr": 1e-4},
+        "GPM": {"method": "gpm", **GPM}, "GPM LR/10": {"method": "gpm", "lr": 1e-4, **GPM},
+        "GPM LR/3": {"method": "gpm", "lr": 3e-4, **GPM},
         "PiSSA": {"method": "pissa"}, "PiSSA LR/10": {"method": "pissa", "lr": 1e-4},
         "PiSSA-GPM": {"method": "pissa-gpm", **GPM}, "PiSSA-GPM LR/10": {"method": "pissa-gpm", "lr": 1e-4, **GPM},
         "PiSSA-GPM LR/3": {"method": "pissa-gpm", "lr": 3e-4, **GPM}}
