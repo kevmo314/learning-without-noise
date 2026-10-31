@@ -4,7 +4,7 @@ singular directions of W0 restricted to the inputs GPM allows, and keeps A there
 the shared LR and at LR/10 (PiSSA's start makes each step larger), on the four-way task. 6 seeds, EMA at step 1000.
 """
 
-from lwn.fig import SEEDS, context, deltas, mean_ci
+from lwn.fig import SEEDS, context, deltas, mean_ci, tag
 from lwn.runs import run, save, table
 
 GPM = {"gpm_energy": 0.9, "gpm_source": "mix"}
@@ -28,4 +28,4 @@ if __name__ == "__main__":
             row[k] = f"{m:.4f}±{c:.4f}"
         rows.append(row)
         table(rows, ["arm", "task", "bio_nll", "lm", "kl"])
-    save("q13_pissa_gpm", {"base": base, "rows": out})
+    save(tag("q13_pissa_gpm"), {"base": base, "rows": out})
