@@ -8,6 +8,8 @@ olora   the same with an orthonormal QR factor of W0: B0 = Q[:, :r], A0 = R[:r] 
 gpm     lora whose input directions (rows of A) are kept orthogonal to the subspace that pretraining activations
         occupy at that layer, so dW x = 0 on pretraining-like inputs (the Gradient Projection Memory idea,
         Saha et al. 2021, applied to the pretraining distribution; pass `basis` from Context.activation_basis)
+pissa-gpm  pissa conditioned on gpm: A, B start at the top-r singular triplets of W0 restricted to gpm's allowed
+        inputs (W0^T (I - U U^T)), and A stays there, so dW x = 0 on pretraining-like inputs as for gpm
 full    every adapted matrix is trained directly; dW = W - W0
 All matrices use the GPT-2 Conv1D layout [in, out], so dW_m has the shape of W0_m.
 """
@@ -33,6 +35,8 @@ class Adapter:
                 m.weight.requires_grad_(True)
             return
         g = torch.Generator(device="cpu").manual_seed(seed)
+        if method in ("gpm", "pissa-gpm"):  # I - U U^T on the input side of each matrix
+            self.proj = {n: torch.eye(U.shape[0], device=U.device) - U @ U.T for n, U in basis.items()}
         for n, m in self.mods.items():
             nin, nout = m.weight.shape
             if method in ("lora", "gpm"):
@@ -45,8 +49,11 @@ class Adapter:
                 with torch.no_grad():
                     m.weight -= (self.scale * (B @ A).T).to(m.weight)
             else:
-                U, S, Vh = torch.linalg.svd(m.weight.detach().T.cpu().double(), full_matrices=False)
-                k = slice(0, rank) if method == "pissa" else slice(len(S) - rank, len(S))
+                W = m.weight.detach().T
+                if method == "pissa-gpm":
+                    W = W @ self.proj[n]
+                U, S, Vh = torch.linalg.svd(W.cpu().double(), full_matrices=False)
+                k = slice(len(S) - rank, len(S)) if method == "milora" else slice(0, rank)
                 r = (S[k] / self.scale).sqrt()
                 A, B = (r[:, None] * Vh[k]).float(), (U[:, k] * r).float()
                 with torch.no_grad():  # frozen residual: W0 - s (B0 A0)^T
@@ -56,8 +63,7 @@ class Adapter:
             self.A[n] = torch.nn.Parameter(A.clone().to(dev))
             self.B[n] = torch.nn.Parameter(B.clone().to(dev))
             self.hooks.append(m.register_forward_hook(self._hook(n)))
-        if method == "gpm":  # I - U U^T on the input side of each matrix
-            self.proj = {n: torch.eye(U.shape[0], device=U.device) - U @ U.T for n, U in basis.items()}
+        if method == "gpm":
             self.project()
 
     def _hook(self, n):
