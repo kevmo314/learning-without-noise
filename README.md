@@ -216,8 +216,14 @@ text at every step) also works very well on its own, at weight 1.0: knowledge lo
 
 ![data quality](figures/f7_data_quality.png)
 
-As the share of randomised fine-tuning labels goes from 0% to 60%, plain training's knowledge loss rises about 6×
-and its KL about 10×. This happens while the weights move *less* far, so the safe distance depends on data quality.
+Thirteen noise levels, every 5% from 0% to 60%, 4 seeds each. As the share of randomised fine-tuning labels goes from
+0% to 60%, plain training's knowledge loss rises about 6× (0.23 → 1.33 nats) and its KL about 10× (0.36 → 3.8). This
+happens while the weights move *less* far, so the safe distance depends on data quality.
+
+Most of the jump comes from the **first 5%** of bad labels: knowledge loss doubles (0.23 → 0.46) and KL triples
+(0.36 → 1.16), while task accuracy barely moves. Damage then stays roughly flat until about 35% noise and climbs again
+after that. A little label noise is not a little harm. Every wrong label is a gradient the task never needed, and the
+optimizer follows it anyway.
 
 A fixed 2% cap holds KL at about 0.05 at every noise level, but its task cost grows with the noise (91% → 86.5%).
 Adaptive weight decay (Ghiasi et al. 2023, here pulling toward the base with strength ∝ ‖grad‖/‖ΔW‖) helps only at
