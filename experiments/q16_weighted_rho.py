@@ -11,7 +11,6 @@ and, from activations alone, the threshold minimising leakage / task room:
 
 import numpy as np
 import torch
-from scipy.stats import spearmanr
 
 from lwn.fig import SEEDS, context, deltas, tag
 from lwn.model import targets
@@ -20,6 +19,11 @@ from lwn.runs import run, save
 GPM = {"gpm_source": "mix"}
 ENERGIES = (0.5, 0.8, 0.9, 0.95, 0.99, 0.999)
 RANKS = (1, 2, 4, 8, 16, 32, 64, 128, 256)
+
+
+def spearman(a, b):
+    rank = lambda x: np.argsort(np.argsort(np.asarray(x)))
+    return float(np.corrcoef(rank(a), rank(b))[0, 1])
 
 
 @torch.no_grad()
@@ -95,6 +99,6 @@ if __name__ == "__main__":
         print(name, " ".join(f"{k} {np.mean([r[k] for r in g]):.4g}" for k in
                              ("rho", "rho_C", "rho_task", "task", "bio_nll", "lm")), flush=True)
     for k in ("bio_nll", "lm", "kl"):
-        print(k, " ".join(f"spearman vs {x}: {spearmanr([r[x] for r in rows], [r[k] for r in rows])[0]:.3f}"
+        print(k, " ".join(f"spearman vs {x}: {spearman([r[x] for r in rows], [r[k] for r in rows]):.3f}"
                           for x in ("rho", "rho_C", "rho_task")))
     save(tag("q16_weighted_rho"), {"pred": pred, "rows": rows})
