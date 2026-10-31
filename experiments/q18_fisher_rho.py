@@ -80,7 +80,7 @@ def bio_batches(ctx, n=512, bs=64):
 def lm_batches(ctx, n=64, bs=16):
     x = ctx.data.val[:n]
     for i in range(0, n, bs):
-        ids = x[i : i + bs]
+        ids = x[i : i + bs, :-1]  # windows carry one extra target token beyond the context length
         yield ids, torch.ones_like(ids), torch.ones_like(ids)
 
 
