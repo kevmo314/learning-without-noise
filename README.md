@@ -75,9 +75,12 @@ No learning here at all: we add noise to the base weights and measure the damage
 - the **slow drift** of real fine-tunes: the part of the update that differs between seeds and survives an EMA;
 - the **fast jitter** of real fine-tunes: raw weights minus their EMA.
 
-At every size, jitter does about 10× the damage of random noise to language loss and KL, and drift about 2×. Random
-low-rank noise is no worse than random full-rank noise. The optimizer's own noise is special: it points where the
-model is sensitive.
+Jitter does more damage than random noise of the same size at every size, and the gap widens as the noise grows: on
+KL it is about 2× at 0.25% of the weights, 5× at 1%, 10× at 4% and 30× at 16%; language loss shows the same rise. Drift
+does about 2–3× the damage of random noise throughout. Random low-rank noise is no worse than random full-rank noise.
+The optimizer's own noise is special: it points where the model is sensitive, and its damage grows faster than
+quadratically with its size. Knowledge loss shows the same ordering above about 2%; below 1%, the differences are at the
+measurement floor (shaded). 19 sizes, 6 seeds, geometric mean ± 95% CI.
 
 ### 3. Everything that reduces noise reduces forgetting
 

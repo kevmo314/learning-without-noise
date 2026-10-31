@@ -45,6 +45,9 @@ def plot(data):
             band(ax, rhos, [[y[k] for y in row] for row in ys], kind, c, log=True)
     for ax, title in zip(axes, ("Language loss increase", "KL from base on held-out text", "Knowledge loss increase (NLL)")):
         log_axes(ax, [0.25, 0.5, 1, 2, 4, 8, 16])
+        if title != "KL from base on held-out text":  # loss differences this small are below the evaluation's precision
+            ax.axhspan(5e-5, 2e-4, color="#868e96", alpha=0.15, lw=0)
+            ax.text(0.98, 0.03, "measurement floor", transform=ax.transAxes, ha="right", fontsize=7, color="#495057")
         ax.set_xlabel("size of the added noise, ρ (% of ‖W₀‖)")
         ax.set_title(title)
     axes[0].legend(fontsize=8)
