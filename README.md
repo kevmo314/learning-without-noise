@@ -144,13 +144,20 @@ doesn't mean "no noise".
 
 ![step size](figures/f6b_stepsize.png)
 
-With 2,048 examples (figure 6b) the picture becomes clearer, and there are two mechanisms:
-- **Sampling noise does matter.** At the same epochs and task accuracy, minibatch training forgets 2–4× more than
-  full-batch training, and its damage keeps accumulating.
-- **Step size matters on its own.** Without any sampling noise, full-batch damage roughly doubles from LR 3e-4 to
-  1e-3.
-- **Full-batch training heals.** It shows a large early transient (knowledge loss 0.41 at 30 epochs at LR 1e-3),
-  which it mostly undoes by 100 epochs.
+With 2,048 examples (figure 6b: two LRs, 23 evaluations per run, 6 seeds) the slow phase does depend on sampling
+noise, and the picture separates into two mechanisms:
+- **Sampling noise drives the slow climb.** Minibatch damage keeps accumulating to the end of training, while full-batch
+  damage does not: at 100 epochs, knowledge loss is 0.17 vs 0.07 at LR 3e-4 (2.4×) and 0.58 vs 0.15 at LR 1e-3 (3.9×),
+  at the same task accuracy (89%).
+- **Step size drives the early spike, and it heals.** Full-batch training spikes at step 30 at LR 1e-3 (knowledge loss
+  +0.42) and at step 51 at LR 3e-4 (+0.12), then undoes most of it by 100 epochs. That matches figure 1's spikes
+  (steps 33 and 57 at the same LRs), so the spike is set by the step count and the LR, not by the batch or the data.
+- **Step size also scales the rest.** Without any sampling noise, full-batch damage at the end still roughly doubles
+  from LR 3e-4 to 1e-3.
+
+The two datasets differ in one way. With 512 examples (figure 6) the slow climb was the same with and without sampling
+noise, and with 2,048 it is mostly sampling noise. On a tiny dataset, continued fitting of the few examples dominates
+the late damage. With more data, the noise of sampling them does.
 
 The 512-example case is the special one: the dataset is so small that minibatch noise is weak.
 
