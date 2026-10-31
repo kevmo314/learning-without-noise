@@ -71,11 +71,11 @@ comes in two phases:
   over the few large early steps. In the same window, raw task accuracy briefly falls *below* the base model's
   (to about 35% against 48%) before climbing.
 - **A slow climb afterwards.** From about step 300, knowledge and language loss rise again at LR 1e-3, to +0.57 and
-  +0.73 by step 2000, and more gently at 3e-4 (+0.10). The EMA follows the same climb (+0.53), so this phase is the
-  slow drift, which averaging doesn't remove, rather than step-to-step jitter.
+  +0.73 by step 2000, and more gently at 3e-4 (+0.10). The EMA follows the same climb (+0.53), so this phase is not
+  step-to-step jitter; section 5 shows it doesn't need minibatch sampling either.
 
-These are the two mechanisms from the full-batch experiment (section 5) in a single run: large early steps do damage
-that heals, and the accumulated drift does damage that doesn't.
+Section 5 separates the two phases further: the early spike is tied to the first ~30 optimizer steps, and the slow
+climb is the same with and without sampling noise.
 
 ### 2. The noise that training produces is much more harmful than random noise of the same size
 
@@ -125,11 +125,22 @@ same experiment cost 2.7 MMLU points that remained 200 steps later.
 
 ![full batch](figures/f6_fullbatch.png)
 
-On 512 examples, full-batch AdamW, which has no minibatch noise at all, forgets about as much as minibatch training
-at the same task accuracy. So the harmful "noise" is not minibatch sampling as such. Our current reading is that it is
-the optimizer's oscillation along sensitive directions at a large step size. Full-batch Adam at a high LR bounces too
-(Cohen et al. 2021, edge of stability). That fits figures 1 and 3: the step size matters. A larger batch at a
-√-scaled LR gave the damage back in the exploratory runs.
+On 512 examples, full-batch AdamW (one step per epoch, no minibatch noise at all) against minibatch-32 AdamW (16 steps
+per epoch), evaluated at 26 points each. Both show the two phases of figure 1:
+
+- **The early spike happens in both, at the same step count, not the same epoch.** Full batch peaks at epoch 31, which
+  is step 31 (knowledge loss +0.47, language +0.64), while the task jumps from below the base to 87%. Minibatch
+  training reaches step 32 by epoch 2, where it is already at +0.51 and falling. Figure 1 peaked at step 33. So the
+  spike belongs to the first ~30 optimizer steps while the task is being picked up, whatever the batch. Our guess is
+  Adam's early steps: every coordinate moves by about the full LR at first, before the second-moment estimates settle.
+  Both arms then heal, to +0.17 (full batch) and +0.11 (minibatch).
+- **The slow climb is the same with and without sampling noise.** From epoch 50 to 200, both arms climb together, to
+  +0.22 knowledge loss, and to +0.29 (full batch) and +0.33 (minibatch) language loss, at equal task accuracy (87%).
+  Minibatch training takes 16× as many steps over that range and still doesn't climb faster. So, on this small
+  dataset, the slow climb comes from continued training on the task itself, not from minibatch noise.
+
+Full-batch Adam at a high LR also oscillates on its own (Cohen et al. 2021, edge of stability), so "no sampling noise"
+doesn't mean "no noise".
 
 ![step size](figures/f6b_stepsize.png)
 
