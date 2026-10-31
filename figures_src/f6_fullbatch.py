@@ -4,21 +4,21 @@ plotted against task accuracy so progress is matched."""
 
 import matplotlib.pyplot as plt
 
-from lwn.fig import load, COLORS, SEEDS, band, context, deltas, finish
+from lwn.fig import load, COLORS, SEEDS, band, context, curve, deltas, finish, log_steps
 from lwn.runs import run
 
 N, LR = 512, 1e-3
-EPOCHS = (25, 50, 100, 200)
+EPOCHS = log_steps(200, first=2, n=28)  # dense in-training evaluation, in epochs
 
 def compute():
     ctx = context()
     base = ctx.base_metrics()
-    arms = {"full batch (no sampling noise)": dict(batch=N, steps=max(EPOCHS), snapshots=EPOCHS),
-            "minibatch 32": dict(batch=32, steps=max(EPOCHS) * N // 32, snapshots=tuple(e * N // 32 for e in EPOCHS))}
+    arms = {"full batch (no sampling noise)": dict(batch=N, steps=max(EPOCHS), evals=EPOCHS),
+            "minibatch 32": dict(batch=32, steps=max(EPOCHS) * N // 32, evals=tuple(e * N // 32 for e in EPOCHS))}
     series = {}
     for name, kw in arms.items():
-        runs = [run(ctx, lr=LR, seed=s, subset=N, ema_examples=None, **kw) for s in SEEDS]
-        series[name] = [[deltas(ctx.eval_delta(r["snaps"][t]["raw"]), base) for t in kw["snapshots"]] for r in runs]
+        runs = [run(ctx, lr=LR, seed=s, subset=N, ema_examples=None, snapshots=(), **kw) for s in SEEDS]
+        series[name] = [[deltas(m, base) for _, m in curve(r)] for r in runs]
     return {"epochs": EPOCHS, "base": base, "series": series}
 
 
@@ -29,7 +29,7 @@ def plot(data):
             band(ax, data["epochs"], [[y[k] for y in row] for row in ys], name, c)
     for ax, title in zip(axes, ("Task accuracy (held out)", "Knowledge loss increase (NLL)", "Language loss increase")):
         ax.set_xscale("log")
-        ax.set_xticks(data["epochs"], [str(e) for e in data["epochs"]])
+        ax.set_xticks([2, 5, 10, 20, 50, 100, 200], ["2", "5", "10", "20", "50", "100", "200"])
         ax.minorticks_off()
         ax.set_xlabel("epochs over the 512 examples")
         ax.set_title(title)

@@ -3,20 +3,20 @@ and the EMA of the same run forgets less. Six seeds per learning rate, mean +/- 
 
 import matplotlib.pyplot as plt
 
-from lwn.fig import load, log_axes, COLORS, SEEDS, band, context, deltas, finish
+from lwn.fig import load, COLORS, SEEDS, band, context, curve, deltas, finish, log_steps
 from lwn.runs import run
 
 LRS = (1e-4, 3e-4, 1e-3)
-STEPS = (125, 250, 500, 1000, 2000)
+STEPS = log_steps(2000)  # ~32 log-spaced evaluations per run, raw and EMA
 
 def compute():
     ctx = context()
     base = ctx.base_metrics()
     series = {}
     for lr in LRS:
-        runs = [run(ctx, lr=lr, seed=s, steps=2000, snapshots=STEPS) for s in SEEDS]
-        for kind in ("raw", "ema"):
-            series[f"{lr:g}/{kind}"] = [[deltas(ctx.eval_delta(r["snaps"][t][kind]), base) for t in STEPS] for r in runs]
+        runs = [run(ctx, lr=lr, seed=s, steps=2000, snapshots=(), evals=STEPS) for s in SEEDS]
+        for kind, key in (("raw", "metrics"), ("ema", "ema_metrics")):
+            series[f"{lr:g}/{kind}"] = [[deltas(m, base) for _, m in curve(r, key)] for r in runs]
     return {"steps": STEPS, "base": base, "series": series}
 
 def plot(data):
@@ -30,7 +30,8 @@ def plot(data):
                      c, style)
     for ax, title in zip(axes, ("Task accuracy (held out)", "Knowledge loss increase (NLL)", "Language loss increase")):
         ax.set_xscale("log")
-        ax.set_xticks(steps, [str(s) for s in steps])
+        ticks = [10, 30, 100, 300, 1000, 2000]
+        ax.set_xticks(ticks, [str(t) for t in ticks])
         ax.minorticks_off()
         ax.set_xlabel("fine-tuning steps")
         ax.set_title(title)

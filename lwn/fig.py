@@ -32,6 +32,16 @@ def context():
     return Context(task=TASK, n_bio_people=3000, bio_attrs=BIO_ATTRS, n_val=512)
 
 
+def log_steps(last, first=8, n=32):
+    """About n log-spaced integer steps from `first` to `last` inclusive, for dense in-training evaluation."""
+    return tuple(sorted({int(round(x)) for x in np.geomspace(first, last, n)}))
+
+
+def curve(run_out, key="metrics"):
+    """The (step, metrics) pairs a run evaluated in training; key="ema_metrics" for its EMA."""
+    return [(c["step"], c[key]) for c in run_out["curve"] if key in c]
+
+
 def tag(name):
     """Figure/result file name: suffixed when run on a non-default model size or task."""
     return name + ("" if MODEL == "small" else f"-{MODEL}") + ("" if TASK == "features" else f"-{TASK}")
@@ -64,7 +74,7 @@ def band(ax, x, ys, label, color, style="-", log=False, floor=1e-4):
     lo, hi = m - ci, m + ci
     if log:
         m, lo, hi = np.exp(m), np.exp(lo), np.exp(hi)
-    ax.plot(x, m, style, color=color, label=label, lw=2, marker="o", ms=3)
+    ax.plot(x, m, style, color=color, label=label, lw=2, marker="o" if len(x) <= 12 else None, ms=3)
     ax.fill_between(x, lo, hi, color=color, alpha=0.18, lw=0)
 
 

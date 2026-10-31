@@ -70,6 +70,7 @@ class FT:
     optimizer: str = "adamw"  # adamw | sgd (momentum 0.9)
     snapshots: tuple[int, ...] = (125, 250, 500, 1000)
     eval_every: int = 0  # 0: evaluate at snapshots only
+    evals: tuple[int, ...] = ()  # extra steps evaluated in training, raw and EMA (dense curves without stored dW)
     extra: dict = field(default_factory=dict)
 
 
@@ -238,10 +239,12 @@ def finetune(ctx, cfg):
                     e.lerp_(p.detach(), 1 - decay)
         s = step + 1
         rec = {"step": s, "loss": loss, "grad_norm": gn, "lr": lr}
-        if (cfg.eval_every and s % cfg.eval_every == 0) or s in cfg.snapshots:
+        if (cfg.eval_every and s % cfg.eval_every == 0) or s in cfg.snapshots or s in cfg.evals:
             d = {n: x.detach() for n, x in ad.deltas().items()}
             rec["rho"] = rho(d, ctx.w0_sq)
             rec["metrics"] = ctx.eval_delta(d)
+            if s in cfg.evals and ema is not None:
+                rec["ema_metrics"] = ctx.eval_delta(ad.deltas_of(ema))
         out["curve"].append(rec)
         if s in cfg.snapshots:
             snap = {"raw": {n: d.detach().clone() for n, d in ad.deltas().items()}}

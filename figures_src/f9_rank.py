@@ -8,7 +8,7 @@ from lwn.analysis import energies
 from lwn.fig import COLORS, SEEDS, context, deltas, finish, load, mean_ci
 from lwn.runs import run
 
-RANKS = (4, 16, 64)
+RANKS = (1, 2, 4, 8, 16, 32, 64, 128, 256)
 
 
 def compute():

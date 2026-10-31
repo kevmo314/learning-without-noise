@@ -3,13 +3,14 @@ far more than random noise of the same size. Directions come from 6 seeds' fine-
 random noise is drawn 6 times. Mean +/- 95% CI over the 6 draws."""
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 from lwn.analysis import add, dot, mean
 from lwn.fig import COLORS, SEEDS, band, context, deltas, finish, load, log_axes
 from lwn.runs import run
 
-RHOS = (0.005, 0.01, 0.02, 0.04, 0.08)
+RHOS = tuple(float(r) for r in np.geomspace(0.0025, 0.16, 19))
 
 
 def scaled(ctx, d, r):
@@ -43,7 +44,7 @@ def plot(data):
         for ax, k in zip(axes, ("lm", "kl", "bio_nll")):
             band(ax, rhos, [[y[k] for y in row] for row in ys], kind, c, log=True)
     for ax, title in zip(axes, ("Language loss increase", "KL from base on held-out text", "Knowledge loss increase (NLL)")):
-        log_axes(ax, rhos)
+        log_axes(ax, [0.25, 0.5, 1, 2, 4, 8, 16])
         ax.set_xlabel("size of the added noise, ρ (% of ‖W₀‖)")
         ax.set_title(title)
     axes[0].legend(fontsize=8)

@@ -11,7 +11,7 @@ from .train import FT, finetune
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "results" / ("runs" if MODEL == "small" else f"runs-{MODEL}")
-LATER = {"subset": None, "optimizer": "adamw", "gpm_source": "val"}
+LATER = {"subset": None, "optimizer": "adamw", "gpm_source": "val", "evals": ()}
 
 
 def run(ctx, **kw):

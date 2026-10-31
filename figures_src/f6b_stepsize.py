@@ -6,11 +6,11 @@ optimizer's own oscillation at a large step size, not minibatch sampling."""
 import matplotlib.pyplot as plt
 
 from lwn.analysis import add, dot
-from lwn.fig import COLORS, SEEDS, band, context, deltas, finish, load
+from lwn.fig import COLORS, SEEDS, band, context, curve, deltas, finish, load, log_steps
 from lwn.runs import run
 
 N = 2048
-EPOCHS = (10, 30, 100)
+EPOCHS = log_steps(100, first=1, n=28)  # dense in-training evaluation, in epochs
 LRS = (3e-4, 1e-3)
 
 
@@ -20,16 +20,15 @@ def compute():
     series = {}
     for lr in LRS:
         for name, b in (("full batch", N), ("minibatch 32", 32)):
-            snaps = tuple(e * N // b for e in EPOCHS)
-            runs = [run(ctx, lr=lr, seed=s, subset=N, batch=b, steps=max(snaps), snapshots=snaps,
-                        ema_examples=N if b == N else 1024) for s in SEEDS[:4]]
+            evals = tuple(e * N // b for e in EPOCHS)
+            runs = [run(ctx, lr=lr, seed=s, subset=N, batch=b, steps=max(evals), snapshots=(max(evals),), evals=evals,
+                        ema_examples=N if b == N else 1024) for s in SEEDS]
             rows = []
             for r in runs:
-                row = []
-                for t in snaps:
-                    raw, ema = r["snaps"][t]["raw"], r["snaps"][t]["ema"]
-                    j = add((1, raw), (-1, ema))
-                    row.append({**deltas(ctx.eval_delta(raw), base), "jitter_share": dot(j, j) / dot(raw, raw)})
+                row = [deltas(m, base) for _, m in curve(r)]
+                raw, ema = r["snaps"][max(evals)]["raw"], r["snaps"][max(evals)]["ema"]
+                j = add((1, raw), (-1, ema))
+                row[-1]["jitter_share"] = dot(j, j) / dot(raw, raw)  # at the end of training only
                 rows.append(row)
             series[f"{name}, LR {lr:g}"] = rows
     return {"epochs": EPOCHS, "base": base, "series": series}
@@ -46,7 +45,7 @@ def plot(data):
             band(ax, data["epochs"], [[y[k] for y in row] for row in ys], name, c, style)
     for ax, title in zip(axes, ("Task accuracy", "Knowledge loss increase (NLL)", "Language loss increase")):
         ax.set_xscale("log")
-        ax.set_xticks(data["epochs"], [str(e) for e in data["epochs"]])
+        ax.set_xticks([1, 3, 10, 30, 100], ["1", "3", "10", "30", "100"])
         ax.minorticks_off()
         ax.set_xlabel("epochs over 2048 examples")
         ax.set_title(title)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from lwn.fig import load, COLORS, band, context, deltas, finish
 from lwn.runs import run
 
-NOISE = (0.0, 0.2, 0.4, 0.6)
+NOISE = tuple(round(0.05 * i, 2) for i in range(13))  # 0% to 60% in steps of 5%
 SEEDS = (0, 1, 2, 3)
 ARMS = {"plain": {}, "cap 2%": {"cap": 0.02}, "AWD 0.3": {"awd": 0.3}, "AWD 1": {"awd": 1.0}, "AWD 3": {"awd": 3.0}}
 
@@ -29,7 +29,7 @@ def plot(data):
         band(axes[1], x, [[y["bio_nll"] for y in row] for row in ys], name, c, log=True, floor=1e-3)
         band(axes[2], x, [[y["kl"] for y in row] for row in ys], name, c, log=True, floor=1e-3)
     for ax, title in zip(axes, ("Task accuracy (held out)", "Knowledge loss increase (NLL)", "KL from base")):
-        ax.set_xticks(x)
+        ax.set_xticks(range(0, 61, 10))
         ax.set_xlabel("% of fine-tuning labels randomised")
         ax.set_title(title)
     axes[1].set_yscale("log")
