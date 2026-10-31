@@ -61,9 +61,21 @@ Figures use 6 seeds per point (mean ± 95% CI), the harder four-way story-featur
 
 ![training curves](figures/f1_curves.png)
 
-All three learning rates reach the same task accuracy (about 91%) by step 2000. At LR 1e-3, though, knowledge loss
-climbs to +0.56 nats and language loss to +0.75, while at 1e-4 both stay flat. The extra damage at the high LR buys
-no extra learning. The EMA of the same run (dashed) forgets a little less.
+Each run is evaluated at 32 log-spaced steps, raw weights (solid) and EMA (dashed). All three learning rates reach
+the same task accuracy (about 91%) by step 2000, so the extra damage at higher LRs buys no extra learning. The damage
+comes in two phases:
+
+- **A transient while the task is being learned.** At LR 1e-3, knowledge loss shoots to +0.52 nats and language loss to
+  +0.75 around step 33, then mostly heals: by step 200 knowledge loss is back down to +0.10. LR 3e-4 shows a smaller
+  version (+0.13 at step 57), and 1e-4 barely any. The EMA never sees this spike (at most +0.08), because it averages
+  over the few large early steps. In the same window, raw task accuracy briefly falls *below* the base model's
+  (to about 35% against 48%) before climbing.
+- **A slow climb afterwards.** From about step 300, knowledge and language loss rise again at LR 1e-3, to +0.57 and
+  +0.73 by step 2000, and more gently at 3e-4 (+0.10). The EMA follows the same climb (+0.53), so this phase is the
+  slow drift, which averaging doesn't remove, rather than step-to-step jitter.
+
+These are the two mechanisms from the full-batch experiment (section 5) in a single run: large early steps do damage
+that heals, and the accumulated drift does damage that doesn't.
 
 ### 2. The noise that training produces is much more harmful than random noise of the same size
 
