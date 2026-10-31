@@ -135,11 +135,13 @@ The 512-example case is the special one: the dataset is so small that minibatch 
 
 ![rank](figures/f9_rank.png)
 
-From rank 4 to rank 64:
-- the drift and jitter energies grow 12× and 22×;
-- seeds agree less;
-- task accuracy stays flat;
-- knowledge loss grows 11×.
+Nine ranks from 1 to 256, 6 seeds each. Task accuracy is flat (89.6–89.9%) from rank 1 to rank 16, yet knowledge loss
+grows steadily the whole way: 0.075 nats at rank 1, 0.27 at 16, 1.3 at 64 and 3.5 at 256. Over the same range:
+- the drift and jitter energies grow about 200× and 800×, faster than the shared signal (125×);
+- seeds agree less (cross-seed cosine 0.50 at rank 1, 0.30 at rank 64);
+- past rank 64 the task suffers too (88.0% at 128, 84.9% at 256).
+
+The extra capacity goes into noise, not into the task. Rank 1 already learns this task as well as any rank does.
 
 ### 7. Distance moved doesn't compare across optimizers; sensitivity-weighted distance does
 
