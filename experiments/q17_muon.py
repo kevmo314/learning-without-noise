@@ -16,10 +16,10 @@ from lwn.runs import run, save, table
 GPM = {"method": "gpm", "gpm_energy": 0.9, "gpm_source": "mix"}
 ARMS = {
     "AdamW": ({}, (1e-4, 3e-4, 1e-3, 3e-3)),
-    "Muon": ({"optimizer": "muon"}, (1e-4, 3e-4, 1e-3, 3e-3)),
+    "Muon": ({"optimizer": "muon"}, (1e-3, 3e-3, 1e-2, 3e-2)),  # learns slower at equal LR: its first steps are smaller
     "SGD": ({"optimizer": "sgd"}, (0.03, 0.1, 0.3, 1.0)),
     "GPM + AdamW": (GPM, (1e-4, 3e-4, 1e-3, 3e-3)),
-    "GPM + Muon": ({**GPM, "optimizer": "muon"}, (1e-4, 3e-4, 1e-3, 3e-3)),
+    "GPM + Muon": ({**GPM, "optimizer": "muon"}, (1e-3, 3e-3, 1e-2, 3e-2)),
 }
 
 if __name__ == "__main__":
