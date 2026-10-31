@@ -239,8 +239,9 @@ the strongest setting tried, and only halves the damage at high noise.
 ### Robustness: the same picture on the yes/no task
 
 Figures 1 and 3 were re-run on the easier yes/no task (`LWN_TASK=badending`, files suffixed `-badending`).
-- [Training curves](figures/f1_curves-badending.png): the same shape. Task accuracy is identical across LRs; at
-  LR 1e-3, forgetting climbs after step 500.
+- [Training curves](figures/f1_curves-badending.png) (32 evaluations per run): the same two phases. At LR 1e-3, the
+  spike is at step 33 again (knowledge +0.14, language +0.21), heals to about +0.03, and the slow climb starts after
+  step 500 (+0.31 by step 2000). Task accuracy is identical across LRs.
 - [Mitigations](figures/f3_mitigations-badending.png): the same ordering, with smaller absolute damage:
   - lower LR, a 4× batch and a 2% cap cut knowledge loss 4–5×;
   - averaging seeds helps more the more seeds are averaged (0.113 → 0.049 with six);

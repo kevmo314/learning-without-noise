@@ -36,7 +36,8 @@ def plot(data):
         ax.set_xlabel("fine-tuning steps")
         ax.set_title(title)
     axes[0].axhline(data["base"]["task"]["acc"], color="#868e96", lw=1, ls=":")
-    axes[0].legend(fontsize=7, ncol=2)
+    handles, labels = axes[0].get_legend_handles_labels()  # below the panels: the curves fill every corner
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=6, fontsize=8, frameon=False)
     finish(fig, "f1_curves", data)
 
 if __name__ == "__main__":
